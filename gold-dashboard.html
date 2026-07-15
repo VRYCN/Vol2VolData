@@ -6,29 +6,28 @@
 <title>Gold Options Dashboard</title>
 <style>
   :root{
-    --bg:#08101c;--panel:#0f1828;--panel2:#0c1422;--line:#22314a;--line2:#1a263b;--text:#e8edf7;--muted:#99a7bf;--dim:#6b7a94;--buy:#38d39f;--sell:#ef5b63;--amber:#d8ac49;--blue:#78b7ff;--good:#7dd3fc;--warn:#f59e0b;--bad:#fb7185;
+    --bg:#08111d;--card:#101b2e;--card2:#0c1627;--line:#24344d;--line2:#1a2740;--text:#e8edf7;--muted:#95a4bd;--dim:#6e7c96;--buy:#41d39d;--sell:#ef5b63;--amber:#d8ac49;--info:#7ab9ff;--good:#83efb2;--warn:#f3b34e;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(1200px 800px at 50% -10%,#12203a 0%,var(--bg) 55%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:520px;margin:0 auto;padding:16px 14px 22px;display:flex;flex-direction:column;gap:14px}
+  body{margin:0;background:radial-gradient(1200px 780px at 50% -10%,#12203a 0%,var(--bg) 55%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:520px;margin:0 auto;padding:16px 14px 24px;display:flex;flex-direction:column;gap:14px}
   .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
   .title{font-size:18px;font-weight:800;line-height:1.15;letter-spacing:-.02em}
   .sub{font-size:12px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .dot{width:8px;height:8px;border-radius:999px;background:var(--buy);box-shadow:0 0 0 3px rgba(56,211,159,.12)}
+  .dot{width:8px;height:8px;border-radius:999px;background:var(--buy);box-shadow:0 0 0 3px rgba(65,211,157,.12)}
   .dot.stale{background:var(--amber);box-shadow:0 0 0 3px rgba(216,172,73,.12)}
-  button{border:1px solid var(--line);background:#162238;color:var(--text);border-radius:10px;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 1px 0 rgba(255,255,255,.02) inset}
-  button:hover{background:#1b2942}
-  button:disabled{opacity:.55;cursor:default}
+  button{border:1px solid var(--line);background:#162238;color:var(--text);border-radius:10px;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px}
+  button:hover{background:#1c2a44}
+  button:disabled{opacity:.6;cursor:default}
   .spin{animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .card{border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,rgba(15,24,40,.98),rgba(10,18,31,.98));overflow:hidden;box-shadow:0 20px 55px rgba(0,0,0,.24)}
+  .card{border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,rgba(16,27,46,.98),rgba(11,19,32,.98));overflow:hidden;box-shadow:0 20px 55px rgba(0,0,0,.24)}
   .head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:16px 16px 10px}
   .brand{display:flex;align-items:center;gap:11px;min-width:0}
   .avatar{width:38px;height:38px;border-radius:999px;background:linear-gradient(135deg,#17243d,#0f1b2f);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:var(--buy);flex-shrink:0}
   .card-title{font-size:15px;font-weight:800;line-height:1.2}
   .card-sub{font-size:11px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}
   .datebox{font-size:12px;color:#cfd8ea;text-align:right;line-height:1.45;background:#121b2c;border:1px solid #1b2740;border-radius:12px;padding:10px 12px;min-width:106px}
-  .section{padding:0 16px 14px}
   .badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;border-radius:999px;padding:7px 11px;margin:0 16px 12px;border:1px solid transparent}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 14px}
   .metric{background:rgba(8,15,26,.65);border:1px solid var(--line2);border-radius:14px;padding:11px 10px;min-height:68px}
@@ -36,7 +35,6 @@
   .metric .v{font-size:16px;font-weight:800;margin-top:7px;line-height:1.05}
   .metric .s{font-size:11px;color:var(--dim);margin-top:5px}
   .rowline{display:flex;justify-content:space-between;gap:10px;padding:12px 16px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);font-size:12px;color:#c7d0e2}
-  .muted{color:var(--dim)}
   .track-wrap{padding:12px 16px 14px}
   .track-title{font-size:11px;color:var(--dim);margin-bottom:8px;display:flex;justify-content:space-between;gap:10px}
   .track{position:relative;height:8px;border-radius:999px;background:#182437;overflow:hidden}
@@ -48,11 +46,10 @@
   .box{background:rgba(8,15,26,.66);border:1px solid var(--line2);border-radius:14px;padding:12px}
   .boxhd{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
   .line{display:flex;justify-content:space-between;gap:12px;font-size:13px;line-height:1.45;margin:2px 0}
-  .line b{font-weight:800}
   .pattern{padding:0 16px 14px}
   .pattern-card{border-radius:16px;padding:14px;border:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg,rgba(20,29,48,.96),rgba(16,24,39,.92));position:relative;overflow:hidden}
   .pattern-card.sell{background:linear-gradient(180deg,rgba(58,18,23,.96),rgba(25,15,25,.94));border-color:rgba(239,91,99,.28)}
-  .pattern-card.buy{background:linear-gradient(180deg,rgba(16,47,34,.96),rgba(14,25,25,.94));border-color:rgba(56,211,159,.24)}
+  .pattern-card.buy{background:linear-gradient(180deg,rgba(16,47,34,.96),rgba(14,25,25,.94));border-color:rgba(65,211,157,.24)}
   .pat-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
   .pat-label{font-size:11px;color:#b9c4d9;letter-spacing:.04em;text-transform:uppercase}
   .pat-name{font-size:28px;font-weight:900;line-height:1.05;margin-top:4px;letter-spacing:-.03em}
@@ -76,7 +73,6 @@
   .foot{padding:10px 16px 16px;border-top:1px solid var(--line2);font-size:10px;color:#66748e;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .empty,.error{border:1px dashed var(--line);border-radius:18px;padding:38px 18px;text-align:center;color:var(--dim);background:rgba(11,17,29,.55)}
   .error{display:none;border-style:solid;border-color:rgba(239,91,99,.35);background:rgba(58,18,23,.5);color:#f3b1b6}
-  a{color:inherit;text-decoration:none}
   @media (max-width:540px){
     .grid4{grid-template-columns:repeat(2,1fr)}
     .split2,.targets{grid-template-columns:1fr}
@@ -130,7 +126,7 @@
         </div>
         <div class="grid4">
           <div class="metric"><div class="k">Future</div><div class="v" id="statSpot">—</div><div class="s" id="statBasisLine">Basis —</div></div>
-          <div class="metric"><div class="k">Vol (IV)</div><div class="v" id="statVol" style="color:var(--good)">—</div><div class="s" id="statVolTrend">—</div></div>
+          <div class="metric"><div class="k">Vol (IV)</div><div class="v" id="statVol" style="color:var(--info)">—</div><div class="s" id="statVolTrend">—</div></div>
           <div class="metric"><div class="k">Daily Move</div><div class="v" id="statMove">—</div><div class="s" id="statFloorCeil">—</div></div>
           <div class="metric"><div class="k">Fut Chg</div><div class="v" id="statChg">—</div><div class="s" id="statConf">—</div></div>
         </div>
@@ -180,40 +176,29 @@
 const RAW_URL = 'https://raw.githubusercontent.com/pageth/Vol2VolData/refs/heads/main/IntradayData.txt';
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 let autoTimer = null;
-
 function fmt(n){ return Number.isFinite(n) ? Math.round(n).toLocaleString('en-US') : '—'; }
 function fmt1(n){ return Number.isFinite(n) ? n.toFixed(1) : '—'; }
 function clamp(n,min,max){ return Math.min(max, Math.max(min, n)); }
 function pct(n){ return Number.isFinite(n) ? (n>=0?'+':'') + n.toFixed(1) : '—'; }
-function money(n){ return Number.isFinite(n) ? Math.round(n).toLocaleString('en-US') : '—'; }
-
 function parseVol2Vol(text){
   if(!text || !text.trim()) throw new Error('ไม่มีข้อมูลในไฟล์');
   const lines = text.replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean);
-  if(lines.length < 2) throw new Error('ข้อมูลไม่ครบ');
-
   const header = lines.find(l => /DTE\)/i.test(l) && /vs\s*[\d,]/i.test(l)) || '';
   let name='Gold', ticker='GC', dte=null, spot=null, futChg=0, dataType='Open Interest';
   if(header){
-    const m = header.match(/([^()]+)\s*\(\s*([\d.]+)\s*DTE\s*\)/i);
-    if(m){ ticker = m[1].trim().split(/\s+/)[0]; name = m[1].trim(); dte = parseFloat(m[2]); }
-    const vs = header.match(/vs\s*([\d,]+\.?\d*)\s*\(\s*([\-.\d]+)\s*\)/i);
-    if(vs){ spot = parseFloat(vs[1].replace(/,/g,'')); futChg = parseFloat(vs[2]); }
-    const type = header.match(/-\s*([A-Za-z][A-Za-z ]+)\s*$/);
-    if(type) dataType = type[1].trim();
-    const rawName = header.split('(')[0].trim();
-    if(rawName) name = rawName;
+    const m = header.match(/([^()]+)\s*\(\s*([\d.]+)\s*DTE\s*\)/i); if(m){ ticker = m[1].trim().split(/\s+/)[0]; name = m[1].trim(); dte = parseFloat(m[2]); }
+    const vs = header.match(/vs\s*([\d,]+\.?\d*)\s*\(\s*([\-\d.]+)\s*\)/i); if(vs){ spot = parseFloat(vs[1].replace(/,/g,'')); futChg = parseFloat(vs[2]); }
+    const type = header.match(/-\s*([A-Za-z][A-Za-z ]+)\s*$/); if(type) dataType = type[1].trim();
+    const rawName = header.split('(')[0].trim(); if(rawName) name = rawName;
   }
-
   const statsLine = lines.find(l => /Put:/i.test(l) && /Call:/i.test(l) && /Vol:/i.test(l));
   let putOI=null, callOI=null, vol=null, volChg=0;
   if(statsLine){
     const p = statsLine.match(/Put:\s*([\d,]+)/i); if(p) putOI = parseFloat(p[1].replace(/,/g,''));
     const c = statsLine.match(/Call:\s*([\d,]+)/i); if(c) callOI = parseFloat(c[1].replace(/,/g,''));
     const v = statsLine.match(/Vol:\s*([\d.]+)/i); if(v) vol = parseFloat(v[1]);
-    const vc = statsLine.match(/Vol\s*Chg:\s*([\-. \d]+)/i); if(vc) volChg = parseFloat(vc[1]);
+    const vc = statsLine.match(/Vol\s*Chg:\s*([\-\d.]+)/i); if(vc) volChg = parseFloat(vc[1]);
   }
-
   const rows = [];
   for(const line of lines){
     const parts = line.split(',');
@@ -222,199 +207,73 @@ function parseVol2Vol(text){
     if(Number.isNaN(strike)) continue;
     rows.push({strike, call: parseFloat(parts[1])||0, put: parseFloat(parts[2])||0, settle: parseFloat(parts[3])||0});
   }
-
-  const missing=[];
-  if(spot === null) missing.push('future price');
-  if(vol === null) missing.push('Vol');
-  if(putOI === null) missing.push('Put OI');
-  if(callOI === null) missing.push('Call OI');
-  if(!rows.length) missing.push('strike table');
-  if(missing.length) throw new Error('อ่านข้อมูลไม่ครบ: ' + missing.join(', '));
-
+  if(spot === null || vol === null || putOI === null || callOI === null || !rows.length) throw new Error('อ่านข้อมูลไม่ครบ');
   return {name,ticker,dte,spot,futChg,dataType,putOITotal:putOI,callOITotal:callOI,vol,volChg,rows};
 }
-
 function analyze(d){
   const dailyMove = d.spot * (d.vol/100) / Math.sqrt(252);
   const base = Math.round(d.spot / 25) * 25;
-  const upper = d.spot + dailyMove;
-  const lower = d.spot - dailyMove;
-  const dailyCeil = Math.round(upper/25)*25;
-  const dailyFloor = Math.round(lower/25)*25;
+  const upper = d.spot + dailyMove, lower = d.spot - dailyMove;
+  const dailyCeil = Math.round(upper/25)*25, dailyFloor = Math.round(lower/25)*25;
   const basis = d.spot - (d.rows.reduce((a,r)=>a+r.strike,0)/d.rows.length);
-
   const calls = [...d.rows].filter(r=>r.strike>=d.spot).sort((a,b)=>b.call-a.call);
   const puts = [...d.rows].filter(r=>r.strike<=d.spot).sort((a,b)=>b.put-a.put);
   const largestCall = calls[0] || null, secondCall = calls[1] || null;
   const largestPut = puts[0] || null, secondPut = puts[1] || null;
-  const callCluster = d.rows.filter(r => largestCall && r.call >= Math.max(largestCall.call*0.72, largestCall.call-1));
-  const putCluster = d.rows.filter(r => largestPut && r.put >= Math.max(largestPut.put*0.72, largestPut.put-1));
-
   const above = d.rows.filter(r=>r.strike>d.spot).sort((a,b)=>a.strike-b.strike);
   const below = d.rows.filter(r=>r.strike<d.spot).sort((a,b)=>b.strike-a.strike);
   const otmCall = above[Math.min(4, above.length-1)] || null;
   const otmPut = below[Math.min(4, below.length-1)] || null;
   const leftSkew = (otmPut && otmCall) ? (otmPut.settle - otmCall.settle) : 0;
   const volTrend = d.volChg > 0.05 ? 'Rising' : d.volChg < -0.05 ? 'Falling' : 'Flat';
-
   const pcr = d.putOITotal / d.callOITotal;
-  let pattern = 'RANGE';
-  let bias = 'NEUTRAL';
-  let scoreSell = 0, scoreBuy = 0;
-  const reasons = [];
-
+  let bias = 'NEUTRAL'; let scoreSell = 0, scoreBuy = 0; const reasons = [];
   if(pcr > 1.12){ scoreBuy += 1; reasons.push(['buy', `Put/Call ratio ${pcr.toFixed(2)} บอกฝั่ง put หนากว่า`]); }
   else if(pcr < 0.88){ scoreSell += 1; reasons.push(['sell', `Put/Call ratio ${pcr.toFixed(2)} บอกฝั่ง call หนากว่า`]); }
-
   if(d.volChg > 0.12){ scoreSell += 0.7; reasons.push(['neutral', `Vol Trend: Rising (${pct(d.volChg)}) ระวัง breakout`]); }
-  else if(d.volChg < -0.12){ scoreBuy += 0.7; reasons.push(['neutral', `Vol Trend: Falling (${pct(d.volChg)}) ช่วยการ fade`]); }
-
+  else if(d.volChg < -0.12){ scoreBuy += 0.7; reasons.push(['neutral', `Vol Trend: Falling (${pct(d.volChg)}) ช่วย fade`]); }
   if(largestCall && d.spot >= largestCall.strike - dailyMove*0.35){ scoreSell += 1; reasons.push(['sell', `ราคาใกล้ Largest Call Cluster ที่ ${fmt(largestCall.strike)}`]); }
   if(largestPut && d.spot <= largestPut.strike + dailyMove*0.35){ scoreBuy += 1; reasons.push(['buy', `ราคาใกล้ Largest Put Cluster ที่ ${fmt(largestPut.strike)}`]); }
-
   if(leftSkew > 0){ scoreSell += 0.5; reasons.push(['sell', `Left Skew สูง ${leftSkew.toFixed(4)} = put ด้านซ้ายแพงกว่า`]); }
   else if(leftSkew < 0){ scoreBuy += 0.5; reasons.push(['buy', `Left Skew กลับด้าน ${leftSkew.toFixed(4)}`]); }
-
-  const distFromBasePts = Math.abs(d.spot - base);
-  const distUsed = (distFromBasePts / Math.max(dailyMove,1)) * 100;
-  if(distUsed > 55){
-    if(d.spot > base) scoreSell += 0.5; else scoreBuy += 0.5;
-    reasons.push(['neutral', `ใช้ daily range ไปแล้ว ${distUsed.toFixed(0)}%`]);
-  }
-
-  if(scoreSell - scoreBuy >= 1.2) bias='SMURF SELL';
-  else if(scoreBuy - scoreSell >= 1.2) bias='SMURF BUY';
-
-  pattern = bias === 'SMURF SELL' ? 'LEFT SKEW / SELL PRESSURE' : bias === 'SMURF BUY' ? 'RIGHT SKEW / BUY PRESSURE' : 'BALANCED RANGE';
+  const distUsed = (Math.abs(d.spot - base) / Math.max(dailyMove,1)) * 100;
+  if(distUsed > 55){ if(d.spot > base) scoreSell += 0.5; else scoreBuy += 0.5; reasons.push(['neutral', `ใช้ daily range ไปแล้ว ${distUsed.toFixed(0)}%`]); }
+  if(scoreSell - scoreBuy >= 1.2) bias='SMURF SELL'; else if(scoreBuy - scoreSell >= 1.2) bias='SMURF BUY';
+  const pattern = bias === 'SMURF SELL' ? 'LEFT SKEW / SELL PRESSURE' : bias === 'SMURF BUY' ? 'RIGHT SKEW / BUY PRESSURE' : 'BALANCED RANGE';
   const strength = Math.min(100, Math.round(55 + Math.abs(scoreSell-scoreBuy)*18 + Math.min(15, Math.abs(d.volChg)*20)));
   const confidence = strength >= 80 ? 'High' : strength >= 66 ? 'Mid' : 'Low';
-
-  const resistance = largestCall || null;
-  const support = largestPut || null;
-  const zoneLow = bias === 'SMURF SELL' && resistance ? resistance.strike - 20 : bias === 'SMURF BUY' && support ? support.strike - 20 : dailyFloor;
-  const zoneHigh = bias === 'SMURF SELL' && resistance ? resistance.strike + 20 : bias === 'SMURF BUY' && support ? support.strike + 20 : dailyCeil;
-
-  const entry = bias === 'SMURF SELL' && resistance ? Math.round((resistance.strike + dailyMove*0.05)/5)*5 : bias === 'SMURF BUY' && support ? Math.round((support.strike - dailyMove*0.05)/5)*5 : base;
-  const stop = bias === 'SMURF SELL' ? Math.round((zoneHigh + dailyMove*0.28)/5)*5 : bias === 'SMURF BUY' ? Math.round((zoneLow - dailyMove*0.28)/5)*5 : bias==='NEUTRAL' ? dailyCeil : dailyFloor;
+  const zoneLow = bias === 'SMURF SELL' && largestCall ? largestCall.strike - 20 : bias === 'SMURF BUY' && largestPut ? largestPut.strike - 20 : dailyFloor;
+  const zoneHigh = bias === 'SMURF SELL' && largestCall ? largestCall.strike + 20 : bias === 'SMURF BUY' && largestPut ? largestPut.strike + 20 : dailyCeil;
+  const entry = bias === 'SMURF SELL' && largestCall ? Math.round((largestCall.strike + dailyMove*0.05)/5)*5 : bias === 'SMURF BUY' && largestPut ? Math.round((largestPut.strike - dailyMove*0.05)/5)*5 : base;
+  const stop = bias === 'SMURF SELL' ? Math.round((zoneHigh + dailyMove*0.28)/5)*5 : bias === 'SMURF BUY' ? Math.round((zoneLow - dailyMove*0.28)/5)*5 : dailyCeil;
   const target1 = bias === 'SMURF SELL' ? Math.round((base - dailyMove*0.45)/5)*5 : bias === 'SMURF BUY' ? Math.round((base + dailyMove*0.45)/5)*5 : dailyCeil;
   const target2 = bias === 'SMURF SELL' ? Math.round((base - dailyMove*0.8)/5)*5 : bias === 'SMURF BUY' ? Math.round((base + dailyMove*0.8)/5)*5 : dailyFloor;
   const swing = bias === 'SMURF SELL' ? Math.round((dailyFloor - dailyMove*0.2)/5)*5 : bias === 'SMURF BUY' ? Math.round((dailyCeil + dailyMove*0.2)/5)*5 : Math.round(base/5)*5;
-  const invalidation = bias === 'SMURF SELL' ? Math.round((zoneHigh + dailyMove*0.55)/5)*5 : bias === 'SMURF BUY' ? Math.round((zoneLow - dailyMove*0.55)/5)*5 : bias;
-
-  return {dailyMove,base,upper,lower,dailyFloor,dailyCeil,basis,leftSkew,volTrend,pcr,largestCall,secondCall,largestPut,secondPut,callCluster,putCluster,bias,pattern,strength,confidence,reasons,zoneLow,zoneHigh,entry,stop,target1,target2,swing,invalidation,resistance,support};
+  const invalidation = bias === 'SMURF SELL' ? Math.round((zoneHigh + dailyMove*0.55)/5)*5 : bias === 'SMURF BUY' ? Math.round((zoneLow - dailyMove*0.55)/5)*5 : base;
+  return {dailyMove,base,upper,lower,dailyFloor,dailyCeil,basis,leftSkew,volTrend,pcr,largestCall,secondCall,largestPut,secondPut,bias,pattern,strength,confidence,reasons,zoneLow,zoneHigh,entry,stop,target1,target2,swing,invalidation};
 }
-
 function colorForBias(b){ return b==='SMURF SELL' ? 'var(--sell)' : b==='SMURF BUY' ? 'var(--buy)' : 'var(--amber)'; }
-
 function render(d,a,ts){
   emptyState.style.display='none'; errorBox.style.display='none'; dashboard.style.display='flex';
-  statusDot.className='dot';
-  statusLine.innerHTML = `<span class="dot"></span><span>อัปเดตล่าสุด ${ts.toLocaleString('th-TH')}</span>`;
-  avatarTxt.textContent = (d.ticker || 'GC').slice(0,2).toUpperCase();
-  tickerLine.textContent = `${d.ticker} · ${d.name} · ${d.dataType}`;
-  dateLine.innerHTML = `${ts.toLocaleDateString('th-TH')}<br>${ts.toLocaleTimeString('th-TH')}`;
-
+  statusDot.className='dot'; statusLine.innerHTML = `<span class="dot"></span><span>อัปเดตล่าสุด ${ts.toLocaleString('th-TH')}</span>`;
+  avatarTxt.textContent = (d.ticker || 'GC').slice(0,2).toUpperCase(); tickerLine.textContent = `${d.ticker} · ${d.name} · ${d.dataType}`; dateLine.innerHTML = `${ts.toLocaleDateString('th-TH')}<br>${ts.toLocaleTimeString('th-TH')}`;
   const c = colorForBias(a.bias);
-  patternBadge.textContent = `${a.bias} · Confidence ${a.confidence} · Signal ${a.strength}`;
-  patternBadge.style.color = c; patternBadge.style.background = `${c}16`; patternBadge.style.borderColor = `${c}55`;
-  patternCard.className = `pattern-card ${a.bias==='SMURF SELL'?'sell':a.bias==='SMURF BUY'?'buy':''}`;
-  patternName.textContent = a.bias;
-  patternNote.textContent = `${a.pattern} | Left Skew ${a.leftSkew.toFixed(4)} | PCR ${a.pcr.toFixed(2)}`;
-  sparkPath.setAttribute('d', a.bias==='SMURF SELL' ? 'M5 10 L20 16 L31 24 L42 32 L55 31 L66 35' : a.bias==='SMURF BUY' ? 'M4 34 L18 29 L31 22 L42 16 L56 16 L66 12' : 'M4 24 L18 24 L30 25 L42 24 L56 24 L66 24');
-  sparkPath.setAttribute('stroke', a.bias==='SMURF SELL' ? '#ef5b63' : a.bias==='SMURF BUY' ? '#38d39f' : '#f2d28d');
-  sparkDot.setAttribute('cx', a.bias==='SMURF SELL' ? '55' : a.bias==='SMURF BUY' ? '56' : '42');
-  sparkDot.setAttribute('cy', a.bias==='SMURF SELL' ? '31' : a.bias==='SMURF BUY' ? '16' : '24');
-  sparkDot.setAttribute('fill', a.bias==='SMURF SELL' ? '#ef5b63' : a.bias==='SMURF BUY' ? '#38d39f' : '#f2d28d');
-
-  statSpot.textContent = fmt(d.spot);
-  statBasisLine.textContent = `Basis ${a.basis>=0?'+':''}${fmt1(a.basis)}`;
-  statVol.textContent = `${d.vol.toFixed(2)}%`;
-  statVolTrend.textContent = `Vol Trend ${a.volTrend}`;
-  statMove.textContent = `±${Math.round(a.dailyMove)} pts`;
-  statFloorCeil.textContent = `Floor ${fmt(a.dailyFloor)} · Ceiling ${fmt(a.dailyCeil)}`;
-  statChg.textContent = `${d.futChg>=0?'+':''}${fmt1(d.futChg)}`;
-  statChg.style.color = d.futChg>=0 ? 'var(--buy)' : 'var(--sell)';
-  statConf.textContent = `Signal ${a.strength}/100 · ${a.confidence}`;
-  statConf.style.color = c;
-
-  oiTotalsLine.textContent = `Put OI ${fmt(d.putOITotal)} vs Call OI ${fmt(d.callOITotal)}`;
-  oiRatioLine.textContent = `PCR ${a.pcr.toFixed(2)} (${a.pcr>=1 ? 'Put heavy' : 'Call heavy'})`;
-  moveUsedLine.textContent = `Daily Expected Move`;
-  signalStrengthLine.textContent = `Signal Strength ${a.strength}/100`;
-  const pctPos = clamp(((d.spot-a.lower)/(a.upper-a.lower))*100,0,100);
-  trackMarker.style.left = pctPos + '%';
-  lowerLabel.textContent = `▼ ${fmt(a.lower)}`;
-  baseLabel.textContent = `BASE ${fmt(a.base)}`;
-  upperLabel.textContent = `▲ ${fmt(a.upper)}`;
-
-  putFloorBox.innerHTML = `
-    <div class="line"><span style="color:#f8a9b4;font-weight:800;">${a.largestPut?fmt(a.largestPut.strike):'—'}</span><span class="muted">Largest Put Cluster</span></div>
-    <div class="line"><span>${a.secondPut?fmt(a.secondPut.strike):'—'}</span><span class="muted">Next Put Cluster</span></div>
-    <div class="line"><span>${fmt(a.dailyFloor)}</span><span class="muted">Daily Floor</span></div>`;
-  callResBox.innerHTML = `
-    <div class="line"><span style="color:#8ee5c2;font-weight:800;">${a.largestCall?fmt(a.largestCall.strike):'—'}</span><span class="muted">Largest Call Cluster</span></div>
-    <div class="line"><span>${a.secondCall?fmt(a.secondCall.strike):'—'}</span><span class="muted">Next Call Cluster</span></div>
-    <div class="line"><span>${fmt(a.dailyCeil)}</span><span class="muted">Daily Ceiling</span></div>`;
-
-  planSubLine.textContent = `${d.ticker} · ${d.name} Futures · ${d.dataType}`;
-  planBiasTxt.textContent = a.bias;
-  planBiasTxt.style.color = c;
-  planBiasLine.innerHTML = `Bias: <b style="color:${c}">${a.bias}</b> · Pattern: ${a.pattern} · Confidence ${a.confidence} · Strength ${a.strength}/100`;
-
-  const zoneColor = c;
-  zoneBoxWrap.innerHTML = `
-    <div class="section" style="padding-top:0">
-      <div class="box" style="border-color:${zoneColor}55;background:${zoneColor}12;">
-        <div class="boxhd" style="color:${zoneColor};">${a.bias==='NEUTRAL'?'NEUTRAL ZONE':a.bias+' ZONE'}</div>
-        <div class="line" style="font-size:23px;font-weight:900;line-height:1.1;margin-top:3px"><span>${fmt(a.zoneLow)}</span><span>–</span><span>${fmt(a.zoneHigh)}</span></div>
-        <div class="line muted" style="font-size:12px;margin-top:8px;display:block">Entry ${fmt(a.entry)} · Stop ${fmt(a.stop)} · Invalidation ${fmt(a.invalidation)}</div>
-      </div>
-    </div>`;
-
-  targetsWrap.innerHTML = `
-    <div class="targets">
-      <div class="tbox"><div class="tlab">Entry</div><div class="tval">${fmt(a.entry)}</div><div class="tmeta">Basis ${a.basis>=0?'+':''}${fmt1(a.basis)}</div></div>
-      <div class="tbox"><div class="tlab">Stop</div><div class="tval">${fmt(a.stop)}</div><div class="tmeta">Invalidation ${fmt(a.invalidation)}</div></div>
-      <div class="tbox swing"><div class="tlab">Swing</div><div class="tval">${fmt(a.swing)}</div><div class="tmeta">Target2 ${fmt(a.target2)}</div></div>
-    </div>
-    <div class="targets" style="padding-top:0">
-      <div class="tbox"><div class="tlab">Target1</div><div class="tval">${fmt(a.target1)}</div><div class="tmeta">First objective</div></div>
-      <div class="tbox"><div class="tlab">Target2</div><div class="tval">${fmt(a.target2)}</div><div class="tmeta">Extension</div></div>
-      <div class="tbox"><div class="tlab">Basis</div><div class="tval">${a.basis>=0?'+':''}${fmt1(a.basis)}</div><div class="tmeta">Future - mean strike</div></div>
-    </div>`;
-
-  reasonsList.innerHTML='';
-  if(!a.reasons.length){ reasonsList.innerHTML = '<li><span class="bullet" style="background:var(--amber)"></span>ไม่มี bias ชัดเจน: ราคาอยู่กลางกรอบและแรง OI ใกล้เคียงกัน</li>'; }
-  else a.reasons.slice(0,5).forEach(([side,text])=>{ reasonsList.innerHTML += `<li><span class="bullet" style="background:${side==='sell'?'var(--sell)':side==='buy'?'var(--buy)':'var(--amber)'}"></span>${text}</li>`; });
-
-  aiSummary.innerHTML = `${a.bias==='NEUTRAL' ? 'AI Summary: ตลาดยังเป็น range-bound.' : `AI Summary: ${a.bias} มีน้ำหนักจาก ${a.pattern.toLowerCase()} และ strength ${a.strength}/100.`} ` +
-    `PCR ${a.pcr.toFixed(2)}, Left Skew ${a.leftSkew.toFixed(4)}, Vol Trend ${a.volTrend}. ` +
-    `โซนที่จับตา: ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)} | Entry ${fmt(a.entry)} | Stop ${fmt(a.stop)} | T1 ${fmt(a.target1)} | T2 ${fmt(a.target2)}.`;
-
-  footLeft.textContent = `${d.ticker} · Trade Plan · ${ts.toLocaleDateString('th-TH')}`;
-  footRight.textContent = `${a.bias}`;
+  patternBadge.textContent = `${a.bias} · Confidence ${a.confidence} · Signal ${a.strength}`; patternBadge.style.color = c; patternBadge.style.background = `${c}16`; patternBadge.style.borderColor = `${c}55`;
+  patternCard.className = `pattern-card ${a.bias==='SMURF SELL'?'sell':a.bias==='SMURF BUY'?'buy':''}`; patternName.textContent = a.bias; patternNote.textContent = `${a.pattern} | Left Skew ${a.leftSkew.toFixed(4)} | PCR ${a.pcr.toFixed(2)}`;
+  sparkPath.setAttribute('d', a.bias==='SMURF SELL' ? 'M5 10 L20 16 L31 24 L42 32 L55 31 L66 35' : a.bias==='SMURF BUY' ? 'M4 34 L18 29 L31 22 L42 16 L56 16 L66 12' : 'M4 24 L18 24 L30 25 L42 24 L56 24 L66 24'); sparkPath.setAttribute('stroke', a.bias==='SMURF SELL' ? '#ef5b63' : a.bias==='SMURF BUY' ? '#41d39d' : '#f2d28d'); sparkDot.setAttribute('cx', a.bias==='SMURF SELL' ? '55' : a.bias==='SMURF BUY' ? '56' : '42'); sparkDot.setAttribute('cy', a.bias==='SMURF SELL' ? '31' : a.bias==='SMURF BUY' ? '16' : '24'); sparkDot.setAttribute('fill', a.bias==='SMURF SELL' ? '#ef5b63' : a.bias==='SMURF BUY' ? '#41d39d' : '#f2d28d');
+  statSpot.textContent = fmt(d.spot); statBasisLine.textContent = `Basis ${a.basis>=0?'+':''}${fmt1(a.basis)}`; statVol.textContent = `${d.vol.toFixed(2)}%`; statVolTrend.textContent = `Vol Trend ${a.volTrend}`; statMove.textContent = `±${Math.round(a.dailyMove)} pts`; statFloorCeil.textContent = `Floor ${fmt(a.dailyFloor)} · Ceiling ${fmt(a.dailyCeil)}`; statChg.textContent = `${d.futChg>=0?'+':''}${fmt1(d.futChg)}`; statChg.style.color = d.futChg>=0 ? 'var(--buy)' : 'var(--sell)'; statConf.textContent = `Signal ${a.strength}/100 · ${a.confidence}`; statConf.style.color = c;
+  oiTotalsLine.textContent = `Put OI ${fmt(d.putOITotal)} vs Call OI ${fmt(d.callOITotal)}`; oiRatioLine.textContent = `PCR ${a.pcr.toFixed(2)} (${a.pcr>=1 ? 'Put heavy' : 'Call heavy'})`; signalStrengthLine.textContent = `Signal Strength ${a.strength}/100`;
+  const pctPos = clamp(((d.spot-a.lower)/(a.upper-a.lower))*100,0,100); trackMarker.style.left = pctPos + '%'; lowerLabel.textContent = `▼ ${fmt(a.lower)}`; baseLabel.textContent = `BASE ${fmt(a.base)}`; upperLabel.textContent = `▲ ${fmt(a.upper)}`;
+  putFloorBox.innerHTML = `<div class="line"><span style="color:#f8a9b4;font-weight:800;">${a.largestPut?fmt(a.largestPut.strike):'—'}</span><span class="muted">Largest Put Cluster</span></div><div class="line"><span>${a.secondPut?fmt(a.secondPut.strike):'—'}</span><span class="muted">Next Put Cluster</span></div><div class="line"><span>${fmt(a.dailyFloor)}</span><span class="muted">Daily Floor</span></div>`; callResBox.innerHTML = `<div class="line"><span style="color:#8ee5c2;font-weight:800;">${a.largestCall?fmt(a.largestCall.strike):'—'}</span><span class="muted">Largest Call Cluster</span></div><div class="line"><span>${a.secondCall?fmt(a.secondCall.strike):'—'}</span><span class="muted">Next Call Cluster</span></div><div class="line"><span>${fmt(a.dailyCeil)}</span><span class="muted">Daily Ceiling</span></div>`;
+  planSubLine.textContent = `${d.ticker} · ${d.name} Futures · ${d.dataType}`; planBiasTxt.textContent = a.bias; planBiasTxt.style.color = c; planBiasLine.innerHTML = `Bias: <b style="color:${c}">${a.bias}</b> · Pattern: ${a.pattern} · Confidence ${a.confidence} · Strength ${a.strength}/100`;
+  zoneBoxWrap.innerHTML = `<div class="section" style="padding-top:0"><div class="box" style="border-color:${c}55;background:${c}12;"><div class="boxhd" style="color:${c};">${a.bias==='NEUTRAL'?'NEUTRAL ZONE':a.bias+' ZONE'}</div><div class="line" style="font-size:23px;font-weight:900;line-height:1.1;margin-top:3px"><span>${fmt(a.zoneLow)}</span><span>–</span><span>${fmt(a.zoneHigh)}</span></div><div class="line muted" style="font-size:12px;margin-top:8px;display:block">Entry ${fmt(a.entry)} · Stop ${fmt(a.stop)} · Invalidation ${fmt(a.invalidation)}</div></div></div>`;
+  targetsWrap.innerHTML = `<div class="targets"><div class="tbox"><div class="tlab">Entry</div><div class="tval">${fmt(a.entry)}</div><div class="tmeta">Basis ${a.basis>=0?'+':''}${fmt1(a.basis)}</div></div><div class="tbox"><div class="tlab">Stop</div><div class="tval">${fmt(a.stop)}</div><div class="tmeta">Invalidation ${fmt(a.invalidation)}</div></div><div class="tbox swing"><div class="tlab">Swing</div><div class="tval">${fmt(a.swing)}</div><div class="tmeta">Target2 ${fmt(a.target2)}</div></div></div><div class="targets" style="padding-top:0"><div class="tbox"><div class="tlab">Target1</div><div class="tval">${fmt(a.target1)}</div><div class="tmeta">First objective</div></div><div class="tbox"><div class="tlab">Target2</div><div class="tval">${fmt(a.target2)}</div><div class="tmeta">Extension</div></div><div class="tbox"><div class="tlab">Basis</div><div class="tval">${a.basis>=0?'+':''}${fmt1(a.basis)}</div><div class="tmeta">Future - mean strike</div></div></div>`;
+  reasonsList.innerHTML=''; if(!a.reasons.length){ reasonsList.innerHTML = '<li><span class="bullet" style="background:var(--amber)"></span>ไม่มี bias ชัดเจน: ราคาอยู่กลางกรอบและแรง OI ใกล้เคียงกัน</li>'; } else a.reasons.slice(0,5).forEach(([side,text])=>{ reasonsList.innerHTML += `<li><span class="bullet" style="background:${side==='sell'?'var(--sell)':side==='buy'?'var(--buy)':'var(--amber)'}"></span>${text}</li>`; });
+  aiSummary.innerHTML = `${a.bias==='NEUTRAL' ? 'AI Summary: ตลาดยังเป็น range-bound.' : `AI Summary: ${a.bias} มีน้ำหนักจาก ${a.pattern.toLowerCase()} และ strength ${a.strength}/100.`} PCR ${a.pcr.toFixed(2)}, Left Skew ${a.leftSkew.toFixed(4)}, Vol Trend ${a.volTrend}. โซนที่จับตา: ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)} | Entry ${fmt(a.entry)} | Stop ${fmt(a.stop)} | T1 ${fmt(a.target1)} | T2 ${fmt(a.target2)}.`;
+  footLeft.textContent = `${d.ticker} · Trade Plan · ${ts.toLocaleDateString('th-TH')}`; footRight.textContent = `${a.bias}`;
 }
-
-function showError(msg){
-  errorBox.style.display='block'; errorBox.textContent = msg; statusDot.className='dot stale';
-}
-
-async function fetchAndRender(isAuto){
-  refreshBtn.disabled = true; refreshIcon.classList.add('spin'); refreshLabel.textContent = 'Loading';
-  try{
-    const res = await fetch(RAW_URL + '?t=' + Date.now(), {cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    const d = parseVol2Vol(text);
-    const a = analyze(d);
-    render(d,a,new Date());
-  }catch(e){
-    showError((e && e.message ? e.message : 'โหลดข้อมูลไม่สำเร็จ') + (isAuto ? ' (auto retry)' : ''));
-  }finally{
-    refreshBtn.disabled = false; refreshIcon.classList.remove('spin'); refreshLabel.textContent = 'Refresh';
-  }
-}
-
+function showError(msg){ errorBox.style.display='block'; errorBox.textContent = msg; statusDot.className='dot stale'; }
+async function fetchAndRender(isAuto){ refreshBtn.disabled = true; refreshIcon.classList.add('spin'); refreshLabel.textContent = 'Loading'; try{ const res = await fetch(RAW_URL + '?t=' + Date.now(), {cache:'no-store'}); if(!res.ok) throw new Error('HTTP ' + res.status); const text = await res.text(); const d = parseVol2Vol(text); const a = analyze(d); render(d,a,new Date()); }catch(e){ showError((e && e.message ? e.message : 'โหลดข้อมูลไม่สำเร็จ') + (isAuto ? ' (auto retry)' : '')); }finally{ refreshBtn.disabled = false; refreshIcon.classList.remove('spin'); refreshLabel.textContent = 'Refresh'; } }
 function startAuto(){ if(autoTimer) clearInterval(autoTimer); autoTimer = setInterval(()=>fetchAndRender(true), AUTO_REFRESH_MS); }
 refreshBtn.addEventListener('click', ()=>{ fetchAndRender(false); startAuto(); });
 fetchAndRender(false); startAuto();
