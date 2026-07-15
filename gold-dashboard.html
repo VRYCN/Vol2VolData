@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gold Options Dashboard — Institutional v4</title>
+<title>Gold Options Dashboard — V5</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
   :root{
@@ -20,7 +20,6 @@
     --sell:#ff707a;
     --amber:#d7ad4a;
     --sky:#80bfff;
-    --violet:#9d8bff;
     --shadow:0 18px 50px rgba(0,0,0,.38);
   }
   *{box-sizing:border-box}
@@ -111,7 +110,6 @@
     font-weight:900;color:var(--buy);
     flex-shrink:0;
     border:1px solid var(--line);
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
   }
   .card-title{
     font-size:15px;
@@ -273,6 +271,26 @@
     margin-top:6px;
     line-height:1.45;
   }
+  .imgbox{
+    width:100%;
+    border:1px solid var(--line2);
+    border-radius:12px;
+    overflow:hidden;
+    background:#08111b;
+    min-height:220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    font-size:12px;
+    text-align:center;
+    padding:12px;
+  }
+  .imgbox img{
+    width:100%;
+    height:auto;
+    display:block;
+  }
   .targets{
     display:grid;
     grid-template-columns:repeat(3,1fr);
@@ -355,7 +373,7 @@
   <div class="wrap">
     <div class="top">
       <div>
-        <h1>Gold Options Dashboard — Institutional v4</h1>
+        <h1>Gold Options Dashboard — V5</h1>
         <div class="sub" id="statusLine"><span class="dot" id="statusDot"></span><span id="statusText">กำลังดึงข้อมูล...</span></div>
       </div>
       <button id="refreshBtn"><span id="refreshIcon">⟳</span><span id="refreshLabel">Refresh</span></button>
@@ -410,7 +428,7 @@
 
         <div class="content">
           <div class="box">
-            <div class="boxhd">Put Floor / Support</div>
+            <div class="boxhd">Put Support</div>
             <div id="putFloorBox">—</div>
           </div>
 
@@ -428,6 +446,11 @@
             <div class="boxhd">Call Resistance</div>
             <div id="callResBox">—</div>
           </div>
+        </div>
+
+        <div class="box" style="margin:0 14px 14px">
+          <div class="boxhd">Skew Snapshot</div>
+          <div id="skewImageBox" class="imgbox">ถ้ามีลิงก์รูป skew จาก Vol2Vol ให้ใส่ URL ตรงนี้ได้<br>ถ้าไม่มี จะใช้ chart Plotly ด้านบนเป็นหลัก</div>
         </div>
       </div>
 
@@ -461,6 +484,7 @@
 <script>
 const RAW_URL = "https://raw.githubusercontent.com/pageth/Vol2VolData/refs/heads/main/IntradayData.txt";
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
+const SKEW_IMAGE_URL = "";
 let autoTimer = null;
 let els = {};
 
@@ -580,17 +604,34 @@ function analyze(d){
 
   const zoneLow = bias === "SMIRK SELL" && largestCall ? largestCall.strike - 20 : bias === "SMIRK BUY" && largestPut ? largestPut.strike - 20 : dailyFloor;
   const zoneHigh = bias === "SMIRK SELL" && largestCall ? largestCall.strike + 20 : bias === "SMIRK BUY" && largestPut ? largestPut.strike + 20 : dailyCeil;
-  const entry = bias === "SMIRK SELL" && largestCall ? Math.round(largestCall.strike / 5) * 5 : bias === "SMIRK BUY" && largestPut ? Math.round(largestPut.strike / 5) * 5 : base;
-  const stop = bias === "SMIRK SELL" ? Math.round((zoneHigh + dailyMove * 0.28) / 5) * 5 : bias === "SMIRK BUY" ? Math.round((zoneLow - dailyMove * 0.28) / 5) * 5 : dailyCeil;
-  const t1 = bias === "SMIRK SELL" ? Math.round((base - dailyMove * 0.45) / 5) * 5 : bias === "SMIRK BUY" ? Math.round((base + dailyMove * 0.45) / 5) * 5 : base;
-  const t2 = bias === "SMIRK SELL" ? Math.round((base - dailyMove * 0.80) / 5) * 5 : bias === "SMIRK BUY" ? Math.round((base + dailyMove * 0.80) / 5) * 5 : base;
-  const swing = bias === "SMIRK SELL" ? Math.round((dailyFloor - dailyMove * 0.15) / 5) * 5 : bias === "SMIRK BUY" ? Math.round((dailyCeil + dailyMove * 0.15) / 5) * 5 : base;
-  const invalid = bias === "SMIRK SELL" ? Math.round((zoneHigh + dailyMove * 0.55) / 5) * 5 : bias === "SMIRK BUY" ? Math.round((zoneLow - dailyMove * 0.55) / 5) * 5 : base;
+
+  let entry = null, stop = null, t1 = null, t2 = null, swing = null, invalid = null, side = "WAIT";
+  if(bias === "SMIRK SELL" && largestCall){
+    side = "SELL";
+    entry = largestCall.strike;
+    stop = zoneHigh + Math.max(10, Math.round(dailyMove * 0.25 / 5) * 5);
+    t1 = Math.max(zoneLow, entry - Math.round(dailyMove * 0.45 / 5) * 5);
+    t2 = Math.max(dailyFloor, entry - Math.round(dailyMove * 0.80 / 5) * 5);
+    swing = Math.max(dailyFloor, entry - Math.round(dailyMove * 1.20 / 5) * 5);
+    invalid = stop;
+    if(t1 >= entry) t1 = entry - 5;
+    if(t2 >= t1) t2 = t1 - 5;
+  }else if(bias === "SMIRK BUY" && largestPut){
+    side = "BUY";
+    entry = largestPut.strike;
+    stop = zoneLow - Math.max(10, Math.round(dailyMove * 0.25 / 5) * 5);
+    t1 = Math.min(zoneHigh, entry + Math.round(dailyMove * 0.45 / 5) * 5);
+    t2 = Math.min(dailyCeil, entry + Math.round(dailyMove * 0.80 / 5) * 5);
+    swing = Math.min(dailyCeil, entry + Math.round(dailyMove * 1.20 / 5) * 5);
+    invalid = stop;
+    if(t1 <= entry) t1 = entry + 5;
+    if(t2 <= t1) t2 = t1 + 5;
+  }
 
   return {
     dailyMove, base, upper, lower, dailyCeil, dailyFloor, basis,
     pcr, skewDelta, skewRegime, largestCall, nextCall, largestPut, nextPut,
-    bias, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid,
+    bias, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid, side,
     curve: buildCurve(d.rows, d.spot)
   };
 }
@@ -606,12 +647,11 @@ function drawPlot(curve, spot, skewRegime){
   const y = curve.rows.map(r=>r.settle);
   const atmY = y.reduce((a,b)=>a+b,0)/y.length;
 
-  const traces = [
+  Plotly.react("plot", [
     {
       type: "scatter",
       mode: "lines+markers",
-      x,
-      y,
+      x, y,
       name: "IV proxy",
       line: { color: "#80bfff", width: 3, shape: "spline" },
       marker: { size: 8, color: "#a9d0ff" },
@@ -626,9 +666,7 @@ function drawPlot(curve, spot, skewRegime){
       marker: { size: 11, color: "#d7ad4a", symbol: "diamond" },
       hovertemplate: "ATM Strike %{x}<extra></extra>"
     }
-  ];
-
-  const layout = {
+  ], {
     margin: {l: 48, r: 16, t: 18, b: 42},
     paper_bgcolor: "rgba(0,0,0,0)",
     plot_bgcolor: "#09111b",
@@ -646,21 +684,10 @@ function drawPlot(curve, spot, skewRegime){
     showlegend: true,
     legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5 },
     annotations: [
-      {
-        x: spot,
-        y: atmY,
-        text: "ATM",
-        showarrow: true,
-        arrowhead: 2,
-        ax: 26,
-        ay: -26,
-        font: { color: "#d7ad4a", size: 11 },
-        arrowcolor: "#d7ad4a"
-      }
+      { x: spot, y: atmY, text: "ATM", showarrow: true, arrowhead: 2, ax: 26, ay: -26, font: { color: "#d7ad4a", size: 11 }, arrowcolor: "#d7ad4a" }
     ]
-  };
+  }, { responsive: true, displayModeBar: false });
 
-  Plotly.react("plot", traces, layout, { responsive: true, displayModeBar: false });
   els.chartNote.textContent = skewRegime === "Left Smirk"
     ? "ฝั่ง put แพงกว่า สะท้อนแรง hedge ด้านล่าง"
     : skewRegime === "Right Smirk"
@@ -668,6 +695,15 @@ function drawPlot(curve, spot, skewRegime){
       : skewRegime === "Smile"
         ? "สองปีกแพงกว่า ATM ตลาดกำลัง price tail risk"
         : "โครง IV ค่อนข้าง flat ระวังกรอบสั้น";
+}
+
+function setImg(url){
+  const box = els.skewImageBox;
+  if(!url){
+    box.innerHTML = "ถ้ามีลิงก์รูป skew จาก Vol2Vol ให้ใส่ URL ตรงนี้ได้<br>ถ้าไม่มี จะใช้ chart Plotly ด้านบนเป็นหลัก";
+    return;
+  }
+  box.innerHTML = `<img src="${url}" alt="Skew snapshot" />`;
 }
 
 function render(data, a){
@@ -716,25 +752,25 @@ function render(data, a){
     <div class="line"><strong>${a.callOITotal ? fmt(Math.round((a.largestCall.call / a.callOITotal) * 100)) : "—"}%</strong><span class="muted-small">Concentration</span></div>` : "—";
 
   els.planSub.textContent = `${data.ticker} · ${data.name} Futures · ${data.dataType}`;
-  els.planBias.textContent = a.bias;
+  els.planBias.textContent = a.side;
 
   els.zoneWrap.innerHTML = `
     <div class="box">
-      <div class="boxhd" style="color:${a.bias==='SMIRK SELL'?'var(--sell)':a.bias==='SMIRK BUY'?'var(--buy)':'var(--amber)'}">
-        ${a.bias === "NEUTRAL" ? "NEUTRAL ZONE" : a.bias + " ZONE"}
+      <div class="boxhd" style="color:${a.side==='SELL'?'var(--sell)':a.side==='BUY'?'var(--buy)':'var(--amber)'}">
+        ${a.side === "WAIT" ? "WAIT / NO EDGE" : a.side + " ZONE"}
       </div>
       <div class="line"><strong style="font-size:20px">${fmt(a.zoneLow)} – ${fmt(a.zoneHigh)}</strong></div>
       <div class="muted-small" style="margin-top:8px">
-        Entry ${fmt(a.entry)} · Stop ${fmt(a.stop)} · Invalidation ${fmt(a.invalid)}
+        Entry ${a.entry ? fmt(a.entry) : "—"} · Stop ${a.stop ? fmt(a.stop) : "—"} · Invalidation ${a.invalid ? fmt(a.invalid) : "—"}
       </div>
     </div>`;
 
   els.targetsWrap.innerHTML = `
-    <div class="t"><div class="lab">Entry</div><div class="val">${fmt(a.entry)}</div></div>
-    <div class="t"><div class="lab">Stop</div><div class="val">${fmt(a.stop)}</div></div>
-    <div class="t"><div class="lab">Swing</div><div class="val">${fmt(a.swing)}</div></div>
-    <div class="t"><div class="lab">T1</div><div class="val">${fmt(a.t1)}</div></div>
-    <div class="t"><div class="lab">T2</div><div class="val">${fmt(a.t2)}</div></div>
+    <div class="t"><div class="lab">Entry</div><div class="val">${a.entry ? fmt(a.entry) : "—"}</div></div>
+    <div class="t"><div class="lab">Stop</div><div class="val">${a.stop ? fmt(a.stop) : "—"}</div></div>
+    <div class="t"><div class="lab">Swing</div><div class="val">${a.swing ? fmt(a.swing) : "—"}</div></div>
+    <div class="t"><div class="lab">T1</div><div class="val">${a.t1 ? fmt(a.t1) : "—"}</div></div>
+    <div class="t"><div class="lab">T2</div><div class="val">${a.t2 ? fmt(a.t2) : "—"}</div></div>
     <div class="t"><div class="lab">Basis</div><div class="val">${a.basis>=0 ? "+" : ""}${fmt1(a.basis)}</div></div>`;
 
   const rl = els.reasonsList;
@@ -754,16 +790,16 @@ function render(data, a){
   }
 
   els.aiSummary.innerHTML = `
-    <div style="font-weight:900">AI Summary — ${a.bias} · ${a.conf}</div>
+    <div style="font-weight:900">AI Summary — ${a.side} · ${a.conf}</div>
     <div style="color:var(--muted);font-size:12px;margin-top:6px;line-height:1.55">
       ภาพรวมตอนนี้เป็น <b>${a.skewRegime}</b> · Smirk Δ = ${a.skewDelta.toFixed(4)}.
       PCR อยู่ที่ ${a.pcr.toFixed(2)} · โซนที่น่าจับตา ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)}.
-      แผนเทรด: Entry ${fmt(a.entry)} / Stop ${fmt(a.stop)} / T1 ${fmt(a.t1)} / T2 ${fmt(a.t2)}.
+      แผนเทรด: Entry ${a.entry ? fmt(a.entry) : "—"} / Stop ${a.stop ? fmt(a.stop) : "—"} / T1 ${a.t1 ? fmt(a.t1) : "—"} / T2 ${a.t2 ? fmt(a.t2) : "—"}.
     </div>`;
 
   els.foot.textContent = `Updated from IntradayData.txt · ${new Date().toLocaleString("th-TH")}`;
-
   drawPlot(a.curve, data.spot, a.skewRegime);
+  setImg(SKEW_IMAGE_URL);
 }
 
 async function fetchAndRender(){
@@ -836,7 +872,8 @@ window.addEventListener("DOMContentLoaded", ()=>{
     foot: document.getElementById("foot"),
     chartNote: document.getElementById("chartNote"),
     skewVal: document.getElementById("skewVal"),
-    skewRegime: document.getElementById("skewRegime")
+    skewRegime: document.getElementById("skewRegime"),
+    skewImageBox: document.getElementById("skewImageBox")
   };
 
   els.refreshBtn.addEventListener("click", ()=>{
