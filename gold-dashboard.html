@@ -3,33 +3,20 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gold Options Dashboard — V5.2</title>
+<title>Gold Options Dashboard — V5.2 Fixed</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
   :root{
-    --bg:#0a1018;
-    --panel:#111b2b;
-    --panel2:#0b1320;
-    --line:#223248;
-    --line2:#1a2433;
-    --text:#e8eef8;
-    --muted:#95a6bf;
-    --dim:#6d7e96;
-    --buy:#4ed3a4;
-    --sell:#ff707a;
-    --amber:#d7ad4a;
-    --sky:#80bfff;
-    --shadow:0 18px 50px rgba(0,0,0,.38);
+    --bg:#0a1018; --line:#223248; --line2:#1a2433; --text:#e8eef8; --muted:#95a6bf;
+    --buy:#4ed3a4; --sell:#ff707a; --amber:#d7ad4a; --shadow:0 18px 50px rgba(0,0,0,.38);
   }
   *{box-sizing:border-box}
   body{
-    margin:0;
-    font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
     color:var(--text);
-    background:
-      radial-gradient(900px 500px at 10% 0%, rgba(80,110,160,.09), transparent 38%),
-      radial-gradient(700px 420px at 85% 0%, rgba(60,90,150,.06), transparent 42%),
-      linear-gradient(180deg,#08101a 0%, var(--bg) 100%);
+    background:radial-gradient(900px 500px at 10% 0%, rgba(80,110,160,.09), transparent 38%),
+               radial-gradient(700px 420px at 85% 0%, rgba(60,90,150,.06), transparent 42%),
+               linear-gradient(180deg,#08101a 0%, var(--bg) 100%);
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:860px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
@@ -37,20 +24,7 @@
   h1{margin:0;font-size:18px;font-weight:900;letter-spacing:-.03em}
   .sub{color:var(--muted);font-size:12px;margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .dot{width:8px;height:8px;border-radius:999px;background:var(--amber);box-shadow:0 0 0 3px rgba(215,173,74,.12)}
-  button{
-    background:linear-gradient(180deg,#162234,#101a2a);
-    border:1px solid var(--line);
-    color:var(--text);
-    padding:9px 12px;
-    border-radius:10px;
-    cursor:pointer;
-    font:inherit;
-    font-size:13px;
-    display:flex;
-    align-items:center;
-    gap:7px;
-  }
-  button:hover{background:linear-gradient(180deg,#1a2940,#132033)}
+  button{background:linear-gradient(180deg,#162234,#101a2a);border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px;display:flex;align-items:center;gap:7px}
   button:disabled{opacity:.6;cursor:default}
   .spin{animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -78,15 +52,12 @@
   .marker{position:absolute;top:-4px;width:3px;height:18px;background:#fff;border-radius:999px;transform:translateX(-50%);box-shadow:0 0 0 2px rgba(255,255,255,.08)}
   .labels{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding-top:8px;gap:8px}
   .content{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:10px;padding:0 14px 14px}
-  .box{background:linear-gradient(180deg,rgba(8,14,22,.28),rgba(6,10,16,.14));border-radius:12px;padding:10px;border:1px solid var(--line2);min-height:100%}
+  .box{background:linear-gradient(180deg,rgba(8,14,22,.28),rgba(6,10,16,.14));border-radius:12px;padding:10px;border:1px solid var(--line2)}
   .boxhd{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.07em}
   .line{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin:2px 0}
   .line strong{font-weight:900}
   .chart{width:100%;height:320px}
   .chart-note{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45}
-  .guide{padding:10px 12px;border:1px solid var(--line2);border-radius:12px;background:rgba(7,13,20,.4)}
-  .guide p{margin:0 0 8px 0;font-size:12px;color:var(--muted);line-height:1.5}
-  .guide p:last-child{margin-bottom:0}
   .targets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px}
   .t{background:linear-gradient(180deg, rgba(12,18,28,.42), rgba(6,10,16,.12));padding:10px;border-radius:10px;text-align:center;border:1px solid var(--line2)}
   .t .lab{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
@@ -106,7 +77,7 @@
 <div class="wrap">
   <div class="top">
     <div>
-      <h1>Gold Options Dashboard — V5.2</h1>
+      <h1>Gold Options Dashboard — V5.2 Fixed</h1>
       <div class="sub" id="statusLine"><span class="dot" id="statusDot"></span><span id="statusText">กำลังดึงข้อมูล...</span></div>
     </div>
     <button id="refreshBtn"><span id="refreshIcon">⟳</span><span id="refreshLabel">Refresh</span></button>
@@ -146,7 +117,7 @@
 
       <div class="track-wrap">
         <div class="track-title">
-          <span id="moveTitle">Daily Expected Move</span>
+          <span>Daily Expected Move</span>
           <span id="signalStrength">Signal Strength —</span>
         </div>
         <div class="track"><div class="marker" id="trackMarker" style="left:50%"></div></div>
@@ -163,15 +134,6 @@
           <div class="boxhd">Vol Skew / Smirk</div>
           <div id="plot" class="chart"></div>
           <div class="chart-note" id="chartNote">—</div>
-          <div class="guide" style="margin-top:10px">
-            <p><b>Left Smirk:</b> put ด้านล่างแพงกว่า call ด้านบน → ตลาดกังวล downside มากกว่า [web:15][web:22]</p>
-            <p><b>Smile:</b> ทั้ง put และ call ไกล ATM แพงกว่า → ตลาดมอง tail risk ทั้งสองฝั่ง [web:4][web:17]</p>
-            <p><b>Right Smirk:</b> call ด้านบนแพงกว่า → ตลาดเริ่ม price upside / breakout premium [web:34][web:22]</p>
-          </div>
-          <div class="line" style="margin-top:8px">
-            <strong id="skewVal">—</strong>
-            <span id="skewRegime">—</span>
-          </div>
         </div>
 
         <div class="box">
@@ -206,8 +168,6 @@
 
 <script>
 const RAW_URL = "https://raw.githubusercontent.com/pageth/Vol2VolData/refs/heads/main/IntradayData.txt";
-const AUTO_REFRESH_MS = 5 * 60 * 1000;
-let autoTimer = null;
 let els = {};
 
 function fmt(n){ return Number.isFinite(+n) ? Math.round(+n).toLocaleString("en-US") : "—"; }
@@ -216,15 +176,22 @@ function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 
 function parseVol2Vol(text){
   if(!text || !text.trim()) throw new Error("ไม่มีข้อมูลในไฟล์");
-  const lines = text.replace(/\r/g,"").split("\n").map(s=>s.trim()).filter(Boolean);
+  const rawLines = text.replace(/\r/g,"").split("\n");
+  const lines = rawLines.map(s=>s.trim()).filter(Boolean);
   let name = "Gold", ticker = "GC", dte = null, spot = null, futChg = 0, dataType = "Open Interest";
+
   const header = lines.find(l => /DTE\)/i.test(l) && /vs\s*[\d,]/i.test(l)) || lines[0] || "";
   if(header){
     const m = header.match(/([^()]+)\s*\(\s*([\d.]+)\s*DTE\s*\)/i);
-    if(m){ name = m[1].trim(); const token = m[1].trim().split(/\s+/)[0]; if(token) ticker = token; dte = parseFloat(m[2]); }
+    if(m){
+      name = m[1].trim();
+      ticker = m[1].trim().split(/\s+/)[0] || "GC";
+      dte = parseFloat(m[2]);
+    }
     const vs = header.match(/vs\s*([\d,]+\.?\d*)\s*\(\s*([-\d.]+)\s*\)/i);
     if(vs){ spot = parseFloat(vs[1].replace(/,/g,"")); futChg = parseFloat(vs[2]); }
-    const tp = header.match(/-\s*([A-Za-z][A-Za-z ]+)\s*$/); if(tp) dataType = tp[1].trim();
+    const tp = header.match(/-\s*([A-Za-z][A-Za-z ]+)\s*$/);
+    if(tp) dataType = tp[1].trim();
   }
 
   const summaryLine = lines.find(l => /Put:\s*[\d,]+/i.test(l) && /Call:\s*[\d,]+/i.test(l) && /Vol:/i.test(l));
@@ -238,18 +205,25 @@ function parseVol2Vol(text){
 
   const rows = [];
   for(const line of lines){
-    const parts = line.split(",");
-    if(parts.length !== 4) continue;
-    const strike = parseFloat(parts[0]);
-    if(Number.isNaN(strike)) continue;
-    rows.push({ strike, call: parseFloat(parts[1])||0, put: parseFloat(parts[2])||0, settle: parseFloat(parts[3])||0 });
+    const parts = line.split(",").map(s=>s.trim());
+    if(parts.length < 4) continue;
+    const strike = parseFloat(parts[0].replace(/,/g,""));
+    const call = parseFloat((parts[1]||"0").replace(/,/g,""));
+    const put = parseFloat((parts[2]||"0").replace(/,/g,""));
+    const settle = parseFloat((parts[3]||"0").replace(/,/g,""));
+    if(Number.isFinite(strike)){
+      rows.push({ strike, call: Number.isFinite(call)?call:0, put: Number.isFinite(put)?put:0, settle: Number.isFinite(settle)?settle:0 });
+    }
   }
 
   if(!rows.length) throw new Error("ไม่พบตาราง strike");
+
+  rows.sort((a,b)=>a.strike-b.strike);
   if(spot === null){
-    const idx = Math.floor(rows.length/2);
-    spot = rows[idx]?.strike || rows[0].strike;
+    const mid = rows[Math.floor(rows.length/2)];
+    spot = mid ? mid.strike : rows[0].strike;
   }
+
   if(vol === null) vol = 0;
   if(putOI === null) putOI = rows.reduce((s,r)=>s+r.put,0);
   if(callOI === null) callOI = rows.reduce((s,r)=>s+r.call,0);
@@ -259,10 +233,9 @@ function parseVol2Vol(text){
 
 function buildCurve(rows, spot){
   const sorted = rows.slice().sort((a,b)=>a.strike-b.strike);
-  const center = sorted.findIndex(r=>r.strike >= spot);
-  const start = Math.max(0, center - 4);
-  const end = Math.min(sorted.length, center + 5);
-  const sample = sorted.slice(start, end);
+  let center = sorted.findIndex(r=>r.strike >= spot);
+  if(center < 0) center = Math.floor(sorted.length/2);
+  const sample = sorted.slice(Math.max(0, center - 4), Math.min(sorted.length, center + 5));
   return { rows: sample.length >= 3 ? sample : sorted.slice(Math.max(0, sorted.length - 7)) };
 }
 
@@ -302,7 +275,7 @@ function analyze(d){
     }
   }
 
-  const pcr = d.putOITotal / d.callOITotal;
+  const pcr = d.putOITotal / Math.max(1, d.callOITotal);
   let sell = 0, buy = 0;
   const reasons = [];
 
@@ -403,29 +376,22 @@ function render(data, a){
   els.oiTotals.textContent = `Put OI ${fmt(data.putOITotal)} vs Call OI ${fmt(data.callOITotal)}`;
   els.oiRatio.textContent = `PCR ${a.pcr.toFixed(2)}`;
   els.signalStrength.textContent = `Signal Strength ${a.strength}/100`;
-
   const pos = clamp(((data.spot - a.lower) / (a.upper - a.lower)) * 100, 0, 100);
   els.trackMarker.style.left = pos + "%";
   els.lowerLabel.textContent = "▼ " + fmt(Math.round(a.lower));
   els.baseLabel.textContent = "BASE " + fmt(Math.round(a.base));
   els.upperLabel.textContent = "▲ " + fmt(Math.round(a.upper));
-
   els.putFloorBox.innerHTML = a.largestPut ? `
-    <div class="line"><strong style="color:#ffc2cb">${fmt(a.largestPut.strike)}</strong><span class="muted-small">Largest Put OI ${fmt(a.largestPut.put)}</span></div>
-    <div class="line"><strong>${a.nextPut ? fmt(a.nextPut.strike) : "—"}</strong><span class="muted-small">Next Put</span></div>
-    <div class="line"><strong>${fmt(a.dailyFloor)}</strong><span class="muted-small">Daily Floor</span></div>
-    <div class="line"><strong>${a.putOITotal ? fmt(Math.round((a.largestPut.put / a.putOITotal) * 100)) : "—"}%</strong><span class="muted-small">Concentration</span></div>` : "—";
-
+    <div class="line"><strong style="color:#ffc2cb">${fmt(a.largestPut.strike)}</strong><span>${fmt(a.largestPut.put)} put</span></div>
+    <div class="line"><strong>${a.nextPut ? fmt(a.nextPut.strike) : "—"}</strong><span>Next Put</span></div>
+    <div class="line"><strong>${fmt(a.dailyFloor)}</strong><span>Daily Floor</span></div>` : "—";
   els.callResBox.innerHTML = a.largestCall ? `
-    <div class="line"><strong style="color:#a7f0cf">${fmt(a.largestCall.strike)}</strong><span class="muted-small">Largest Call OI ${fmt(a.largestCall.call)}</span></div>
-    <div class="line"><strong>${a.nextCall ? fmt(a.nextCall.strike) : "—"}</strong><span class="muted-small">Next Call</span></div>
-    <div class="line"><strong>${fmt(a.dailyCeil)}</strong><span class="muted-small">Daily Ceiling</span></div>
-    <div class="line"><strong>${a.callOITotal ? fmt(Math.round((a.largestCall.call / a.callOITotal) * 100)) : "—"}%</strong><span class="muted-small">Concentration</span></div>` : "—";
-
+    <div class="line"><strong style="color:#a7f0cf">${fmt(a.largestCall.strike)}</strong><span>${fmt(a.largestCall.call)} call</span></div>
+    <div class="line"><strong>${a.nextCall ? fmt(a.nextCall.strike) : "—"}</strong><span>Next Call</span></div>
+    <div class="line"><strong>${fmt(a.dailyCeil)}</strong><span>Daily Ceiling</span></div>` : "—";
   els.planSub.textContent = `${data.ticker} · ${data.name} Futures · ${data.dataType}`;
   els.planBias.textContent = a.side;
-  els.zoneWrap.innerHTML = `<div class="box"><div class="boxhd" style="color:${a.side==='SELL'?'var(--sell)':a.side==='BUY'?'var(--buy)':'var(--amber)'}">${a.side === "WAIT" ? "WAIT / NO EDGE" : a.side + " ZONE"}</div><div class="line"><strong style="font-size:20px">${fmt(a.zoneLow)} – ${fmt(a.zoneHigh)}</strong></div><div class="muted-small" style="margin-top:8px">Entry ${a.entry ? fmt(a.entry) : "—"} · Stop ${a.stop ? fmt(a.stop) : "—"} · Invalidation ${a.invalid ? fmt(a.invalid) : "—"}</div></div>`;
-
+  els.zoneWrap.innerHTML = `<div class="box"><div class="boxhd" style="color:${a.side==='SELL'?'var(--sell)':a.side==='BUY'?'var(--buy)':'var(--amber)'}">${a.side === "WAIT" ? "WAIT / NO EDGE" : a.side + " ZONE"}</div><div class="line"><strong style="font-size:20px">${fmt(a.zoneLow)} – ${fmt(a.zoneHigh)}</strong></div><div style="margin-top:8px;font-size:12px;color:var(--muted)">Entry ${a.entry ? fmt(a.entry) : "—"} · Stop ${a.stop ? fmt(a.stop) : "—"} · Invalidation ${a.invalid ? fmt(a.invalid) : "—"}</div></div>`;
   els.targetsWrap.innerHTML = `
     <div class="t"><div class="lab">Entry</div><div class="val">${a.entry ? fmt(a.entry) : "—"}</div></div>
     <div class="t"><div class="lab">Stop</div><div class="val">${a.stop ? fmt(a.stop) : "—"}</div></div>
@@ -433,31 +399,8 @@ function render(data, a){
     <div class="t"><div class="lab">T1</div><div class="val">${a.t1 ? fmt(a.t1) : "—"}</div></div>
     <div class="t"><div class="lab">T2</div><div class="val">${a.t2 ? fmt(a.t2) : "—"}</div></div>
     <div class="t"><div class="lab">Basis</div><div class="val">${a.basis>=0 ? "+" : ""}${fmt1(a.basis)}</div></div>`;
-
-  const rl = els.reasonsList;
-  rl.innerHTML = "";
-  if(!a.reasons.length){
-    rl.innerHTML = `<li><span class="bullet" style="background:var(--amber)"></span>ยังไม่มี bias ชัดเจน — ตลาดอยู่ในโหมดกลางกรอบ</li>`;
-  }else{
-    a.reasons.forEach(r=>{
-      const li = document.createElement("li");
-      const b = document.createElement("span");
-      b.className = "bullet";
-      b.style.background = r[0] === "sell" ? "var(--sell)" : r[0] === "buy" ? "var(--buy)" : "var(--amber)";
-      li.appendChild(b);
-      li.appendChild(document.createTextNode(r[1]));
-      rl.appendChild(li);
-    });
-  }
-
-  els.aiSummary.innerHTML = `
-    <div style="font-weight:900">AI Summary — ${a.side} · ${a.conf}</div>
-    <div style="color:var(--muted);font-size:12px;margin-top:6px;line-height:1.55">
-      ภาพรวมตอนนี้เป็น <b>${a.skewRegime}</b> · Smirk Δ = ${a.skewDelta.toFixed(4)}.
-      PCR อยู่ที่ ${a.pcr.toFixed(2)} · โซนที่น่าจับตา ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)}.
-      แผนเทรด: Entry ${a.entry ? fmt(a.entry) : "—"} / Stop ${a.stop ? fmt(a.stop) : "—"} / T1 ${a.t1 ? fmt(a.t1) : "—"} / T2 ${a.t2 ? fmt(a.t2) : "—"}.
-    </div>`;
-
+  els.reasonsList.innerHTML = a.reasons.length ? a.reasons.map(r=>`<li><span class="bullet" style="background:${r[0]==='sell'?'var(--sell)':r[0]==='buy'?'var(--buy)':'var(--amber)'}"></span>${r[1]}</li>`).join("") : `<li><span class="bullet" style="background:var(--amber)"></span>ยังไม่มี bias ชัดเจน — ตลาดอยู่ในโหมดกลางกรอบ</li>`;
+  els.aiSummary.innerHTML = `<div style="font-weight:900">AI Summary — ${a.side} · ${a.conf}</div><div style="color:var(--muted);font-size:12px;margin-top:6px;line-height:1.55">ภาพรวมตอนนี้เป็น <b>${a.skewRegime}</b> · Smirk Δ = ${a.skewDelta.toFixed(4)}. PCR อยู่ที่ ${a.pcr.toFixed(2)} · โซนที่น่าจับตา ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)}. แผนเทรด: Entry ${a.entry ? fmt(a.entry) : "—"} / Stop ${a.stop ? fmt(a.stop) : "—"} / T1 ${a.t1 ? fmt(a.t1) : "—"} / T2 ${a.t2 ? fmt(a.t2) : "—"}.</div>`;
   els.foot.textContent = `Updated from IntradayData.txt · ${new Date().toLocaleString("th-TH")}`;
   drawPlot(a.curve, data.spot, a.skewRegime);
 }
@@ -523,7 +466,10 @@ window.addEventListener("DOMContentLoaded", ()=>{
     reasonsList:document.getElementById("reasonsList"),
     aiSummary:document.getElementById("aiSummary"),
     foot:document.getElementById("foot"),
-    chartNote:document.getElementById("chartNote")
+    chartNote:document.getElementById("chartNote"),
+    refreshBtn:document.getElementById("refreshBtn"),
+    refreshIcon:document.getElementById("refreshIcon"),
+    refreshLabel:document.getElementById("refreshLabel")
   };
   els.refreshBtn.addEventListener("click", fetchAndRender);
   fetchAndRender();
