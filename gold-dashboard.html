@@ -3,22 +3,25 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gold Options Dashboard — SMIRK v3</title>
+<title>Gold Options Dashboard — Institutional v4</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
   :root{
-    --bg:#06111b;
-    --panel:#0f1b2c;
-    --panel2:#0b1422;
-    --line:#21334b;
-    --line2:#172433;
-    --text:#eaf0fb;
+    --bg:#0a1018;
+    --bg2:#0d1622;
+    --panel:#111b2b;
+    --panel2:#0b1320;
+    --line:#223248;
+    --line2:#1a2433;
+    --text:#e8eef8;
     --muted:#95a6bf;
-    --dim:#6f809a;
-    --buy:#35d09a;
-    --sell:#f15b64;
-    --amber:#d8ad46;
-    --info:#78b9ff;
+    --dim:#6d7e96;
+    --buy:#4ed3a4;
+    --sell:#ff707a;
+    --amber:#d7ad4a;
+    --sky:#80bfff;
+    --violet:#9d8bff;
+    --shadow:0 18px 50px rgba(0,0,0,.38);
   }
   *{box-sizing:border-box}
   body{
@@ -26,13 +29,13 @@
     font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
     color:var(--text);
     background:
-      radial-gradient(900px 500px at 10% 0%, rgba(35,56,95,.12), transparent 35%),
-      radial-gradient(700px 400px at 80% 0%, rgba(56,90,145,.08), transparent 40%),
-      linear-gradient(180deg,#051022 0%, var(--bg) 100%);
+      radial-gradient(900px 500px at 10% 0%, rgba(80,110,160,.09), transparent 38%),
+      radial-gradient(700px 420px at 85% 0%, rgba(60,90,150,.06), transparent 42%),
+      linear-gradient(180deg,#08101a 0%, var(--bg) 100%);
     -webkit-font-smoothing:antialiased;
   }
   .wrap{
-    max-width:760px;
+    max-width:860px;
     margin:0 auto;
     padding:16px;
     display:flex;
@@ -62,10 +65,10 @@
   }
   .dot{
     width:8px;height:8px;border-radius:999px;background:var(--amber);
-    box-shadow:0 0 0 3px rgba(216,173,70,.12);
+    box-shadow:0 0 0 3px rgba(215,173,74,.12);
   }
   button{
-    background:linear-gradient(180deg,#132535,#0d1a2b);
+    background:linear-gradient(180deg,#162234,#101a2a);
     border:1px solid var(--line);
     color:var(--text);
     padding:9px 12px;
@@ -77,16 +80,16 @@
     align-items:center;
     gap:7px;
   }
-  button:hover{background:linear-gradient(180deg,#183048,#132538)}
+  button:hover{background:linear-gradient(180deg,#1a2940,#132033)}
   button:disabled{opacity:.6;cursor:default}
   .spin{animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
   .card{
-    background:linear-gradient(180deg, rgba(18,28,44,.96), rgba(10,16,26,.98));
+    background:linear-gradient(180deg, rgba(18,28,44,.97), rgba(10,16,26,.98));
     border:1px solid var(--line);
-    border-radius:16px;
+    border-radius:18px;
     overflow:hidden;
-    box-shadow:0 18px 50px rgba(0,0,0,.36);
+    box-shadow:var(--shadow);
   }
   .head{
     display:flex;
@@ -102,12 +105,13 @@
     min-width:0;
   }
   .avatar{
-    width:40px;height:40px;border-radius:50%;
-    background:linear-gradient(180deg,#14233a,#0b1624);
+    width:42px;height:42px;border-radius:50%;
+    background:linear-gradient(180deg,#17263d,#0c1420);
     display:flex;align-items:center;justify-content:center;
     font-weight:900;color:var(--buy);
     flex-shrink:0;
     border:1px solid var(--line);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
   }
   .card-title{
     font-size:15px;
@@ -121,18 +125,18 @@
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
-    max-width:420px;
+    max-width:470px;
   }
   .datebox{
     color:#d8e0ee;
     font-size:12px;
     text-align:right;
-    line-height:1.4;
+    line-height:1.45;
     background:rgba(12,19,31,.95);
     border:1px solid var(--line2);
     border-radius:12px;
     padding:9px 11px;
-    min-width:110px;
+    min-width:120px;
   }
   .badge{
     display:inline-flex;
@@ -144,10 +148,11 @@
     border:1px solid transparent;
     margin:0 14px 12px;
     font-size:12px;
+    letter-spacing:.01em;
   }
-  .badge.buy{background:rgba(53,208,154,.10);color:var(--buy);border-color:rgba(53,208,154,.18)}
-  .badge.sell{background:rgba(241,91,100,.10);color:var(--sell);border-color:rgba(241,91,100,.18)}
-  .badge.neutral{background:rgba(216,173,70,.10);color:var(--amber);border-color:rgba(216,173,70,.18)}
+  .badge.buy{background:rgba(78,211,164,.10);color:var(--buy);border-color:rgba(78,211,164,.18)}
+  .badge.sell{background:rgba(255,112,122,.10);color:var(--sell);border-color:rgba(255,112,122,.18)}
+  .badge.neutral{background:rgba(215,173,74,.10);color:var(--amber);border-color:rgba(215,173,74,.18)}
   .metrics{
     display:grid;
     grid-template-columns:repeat(4,1fr);
@@ -155,7 +160,7 @@
     padding:0 14px 14px;
   }
   .metric{
-    background:linear-gradient(180deg,rgba(6,12,20,.45),rgba(6,12,20,.20));
+    background:linear-gradient(180deg,rgba(9,14,22,.52),rgba(9,14,22,.24));
     border:1px solid var(--line2);
     border-radius:12px;
     padding:10px;
@@ -164,7 +169,7 @@
     font-size:10px;
     color:var(--muted);
     text-transform:uppercase;
-    letter-spacing:.05em;
+    letter-spacing:.07em;
   }
   .metric .v{
     font-weight:900;
@@ -208,7 +213,8 @@
     content:"";
     position:absolute;
     inset:0;
-    background:linear-gradient(90deg,var(--sell) 0%, #d89a4a 40%, #9adf6e 100%);
+    background:linear-gradient(90deg,var(--sell) 0%, #c57d5b 35%, #d6b35a 55%, #78ca7a 100%);
+    opacity:.95;
   }
   .marker{
     position:absolute;
@@ -230,7 +236,7 @@
   }
   .content{
     display:grid;
-    grid-template-columns:1.2fr 1fr;
+    grid-template-columns:1fr 1.15fr 1fr;
     gap:10px;
     padding:0 14px 14px;
   }
@@ -239,13 +245,14 @@
     border-radius:12px;
     padding:10px;
     border:1px solid var(--line2);
+    min-height:100%;
   }
   .boxhd{
     font-size:11px;
     color:var(--muted);
     margin-bottom:8px;
     text-transform:uppercase;
-    letter-spacing:.05em;
+    letter-spacing:.07em;
   }
   .line{
     display:flex;
@@ -258,13 +265,13 @@
   .line strong{font-weight:900}
   .chart{
     width:100%;
-    height:280px;
+    height:320px;
   }
   .chart-note{
     font-size:11px;
     color:var(--muted);
     margin-top:6px;
-    line-height:1.4;
+    line-height:1.45;
   }
   .targets{
     display:grid;
@@ -273,7 +280,7 @@
     padding:12px 14px;
   }
   .t{
-    background:linear-gradient(180deg, rgba(12,18,28,.4), rgba(6,10,16,.12));
+    background:linear-gradient(180deg, rgba(12,18,28,.42), rgba(6,10,16,.12));
     padding:10px;
     border-radius:10px;
     text-align:center;
@@ -283,6 +290,7 @@
     font-size:11px;
     color:var(--muted);
     text-transform:uppercase;
+    letter-spacing:.06em;
   }
   .t .val{
     font-weight:900;
@@ -305,7 +313,7 @@
     gap:8px;
     color:var(--muted);
     font-size:12px;
-    line-height:1.4;
+    line-height:1.45;
   }
   .bullet{
     width:8px;height:8px;border-radius:999px;margin-top:5px;flex-shrink:0;
@@ -330,11 +338,11 @@
   .error{
     display:none;
     border-style:solid;
-    border-color:rgba(241,91,100,.35);
+    border-color:rgba(255,112,122,.35);
     background:rgba(60,18,24,.46);
     color:#f3b1b6;
   }
-  @media (max-width:760px){
+  @media (max-width:860px){
     .metrics{grid-template-columns:repeat(2,1fr)}
     .content{grid-template-columns:1fr}
     .targets{grid-template-columns:1fr}
@@ -347,7 +355,7 @@
   <div class="wrap">
     <div class="top">
       <div>
-        <h1>Gold Options Dashboard — SMIRK v3</h1>
+        <h1>Gold Options Dashboard — Institutional v4</h1>
         <div class="sub" id="statusLine"><span class="dot" id="statusDot"></span><span id="statusText">กำลังดึงข้อมูล...</span></div>
       </div>
       <button id="refreshBtn"><span id="refreshIcon">⟳</span><span id="refreshLabel">Refresh</span></button>
@@ -402,7 +410,7 @@
 
         <div class="content">
           <div class="box">
-            <div class="boxhd">PUT (OTM FLOOR)</div>
+            <div class="boxhd">Put Floor / Support</div>
             <div id="putFloorBox">—</div>
           </div>
 
@@ -417,7 +425,7 @@
           </div>
 
           <div class="box">
-            <div class="boxhd">CALL (RESISTANCE)</div>
+            <div class="boxhd">Call Resistance</div>
             <div id="callResBox">—</div>
           </div>
         </div>
@@ -507,9 +515,7 @@ function buildCurve(rows, spot){
   const center = sorted.findIndex(r=>r.strike >= spot);
   const sample = sorted.slice(Math.max(0, center - 4), Math.min(sorted.length, center + 5));
   const arr = sample.length >= 3 ? sample : sorted.slice(-7);
-  const xs = arr.map(r=>r.strike);
-  const ys = arr.map(r=>r.settle);
-  return { xs, ys, rows: arr };
+  return { rows: arr };
 }
 
 function analyze(d){
@@ -540,9 +546,10 @@ function analyze(d){
   else if(skewDelta < -0.02) skewRegime = "Right Smirk";
   else {
     const curve = buildCurve(d.rows, d.spot);
-    if(curve.ys.length >= 3){
-      const mid = curve.ys[Math.floor(curve.ys.length/2)];
-      const ends = (curve.ys[0] + curve.ys[curve.ys.length-1]) / 2;
+    const ys = curve.rows.map(r=>r.settle);
+    if(ys.length >= 3){
+      const mid = ys[Math.floor(ys.length/2)];
+      const ends = (ys[0] + ys[ys.length-1]) / 2;
       if(ends > mid * 1.02) skewRegime = "Smile";
     }
   }
@@ -551,17 +558,17 @@ function analyze(d){
   let sell = 0, buy = 0;
   const reasons = [];
 
-  if(pcr > 1.12){ buy += 1; reasons.push(["buy", `PCR ${pcr.toFixed(2)} → Put heavy`]); }
-  else if(pcr < 0.88){ sell += 1; reasons.push(["sell", `PCR ${pcr.toFixed(2)} → Call heavy`]); }
+  if(pcr > 1.12){ buy += 1; reasons.push(["buy", `PCR ${pcr.toFixed(2)} → put-heavy flow`]); }
+  else if(pcr < 0.88){ sell += 1; reasons.push(["sell", `PCR ${pcr.toFixed(2)} → call-heavy flow`]); }
 
-  if(d.volChg > 0.12){ sell += 0.7; reasons.push(["neutral", `IV rising (${d.volChg.toFixed(2)}) → breakout risk`]); }
-  else if(d.volChg < -0.12){ buy += 0.7; reasons.push(["neutral", `IV falling (${d.volChg.toFixed(2)}) → fade favored`]); }
+  if(d.volChg > 0.12){ sell += 0.7; reasons.push(["neutral", `IV เด้ง (${d.volChg.toFixed(2)}) → ระวัง breakout`]); }
+  else if(d.volChg < -0.12){ buy += 0.7; reasons.push(["neutral", `IV ยุบ (${d.volChg.toFixed(2)}) → เล่น fade ได้`]); }
 
-  if(largestCall && d.spot >= largestCall.strike - dailyMove * 0.35){ sell += 1; reasons.push(["sell", `Near largest Call cluster ${fmt(largestCall.strike)}`]); }
-  if(largestPut && d.spot <= largestPut.strike + dailyMove * 0.35){ buy += 1; reasons.push(["buy", `Near largest Put cluster ${fmt(largestPut.strike)}`]); }
+  if(largestCall && d.spot >= largestCall.strike - dailyMove * 0.35){ sell += 1; reasons.push(["sell", `แตะ call cluster ใหญ่ ${fmt(largestCall.strike)}`]); }
+  if(largestPut && d.spot <= largestPut.strike + dailyMove * 0.35){ buy += 1; reasons.push(["buy", `ลงใกล้ put cluster ใหญ่ ${fmt(largestPut.strike)}`]); }
 
-  if(skewDelta > 0.02){ sell += 0.6; reasons.push(["sell", `Left smirk: OTM Put richer by ${skewDelta.toFixed(4)}`]); }
-  else if(skewDelta < -0.02){ buy += 0.6; reasons.push(["buy", `Right smirk: OTM Call richer by ${Math.abs(skewDelta).toFixed(4)}`]); }
+  if(skewDelta > 0.02){ sell += 0.6; reasons.push(["sell", `Left smirk: put แพงกว่า ${skewDelta.toFixed(4)}`]); }
+  else if(skewDelta < -0.02){ buy += 0.6; reasons.push(["buy", `Right smirk: call แพงกว่า ${Math.abs(skewDelta).toFixed(4)}`]); }
 
   const diff = sell - buy;
   let bias = "NEUTRAL";
@@ -588,7 +595,7 @@ function analyze(d){
   };
 }
 
-function drawPlot(curve, spot, bias, skewRegime){
+function drawPlot(curve, spot, skewRegime){
   if(!window.Plotly){
     els.errorBox.style.display = "block";
     els.errorBox.textContent = "Plotly.js โหลดไม่สำเร็จ — chart จึงไม่แสดง แต่ข้อมูลด้านอื่นยังทำงานได้";
@@ -597,6 +604,7 @@ function drawPlot(curve, spot, bias, skewRegime){
 
   const x = curve.rows.map(r=>r.strike);
   const y = curve.rows.map(r=>r.settle);
+  const atmY = y.reduce((a,b)=>a+b,0)/y.length;
 
   const traces = [
     {
@@ -605,26 +613,26 @@ function drawPlot(curve, spot, bias, skewRegime){
       x,
       y,
       name: "IV proxy",
-      line: { color: "#78b9ff", width: 3, shape: "spline" },
-      marker: { size: 8, color: "#9ec8ff" },
+      line: { color: "#80bfff", width: 3, shape: "spline" },
+      marker: { size: 8, color: "#a9d0ff" },
       hovertemplate: "Strike %{x}<br>IV proxy %{y:.4f}<extra></extra>"
     },
     {
       type: "scatter",
       mode: "markers",
       x: [spot],
-      y: [y.reduce((a,b)=>a+b,0)/y.length],
+      y: [atmY],
       name: "ATM",
-      marker: { size: 11, color: "#d8ad46", symbol: "diamond" },
-      hovertemplate: "ATM %{x}<extra></extra>"
+      marker: { size: 11, color: "#d7ad4a", symbol: "diamond" },
+      hovertemplate: "ATM Strike %{x}<extra></extra>"
     }
   ];
 
   const layout = {
-    margin: {l: 46, r: 16, t: 18, b: 42},
+    margin: {l: 48, r: 16, t: 18, b: 42},
     paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: "#08111b",
-    font: { color: "#eaf0fb", size: 12 },
+    plot_bgcolor: "#09111b",
+    font: { color: "#e8eef8", size: 12 },
     xaxis: {
       title: { text: "Strike", font: { color: "#95a6bf" } },
       gridcolor: "rgba(255,255,255,.07)",
@@ -640,30 +648,26 @@ function drawPlot(curve, spot, bias, skewRegime){
     annotations: [
       {
         x: spot,
-        y: y.reduce((a,b)=>a+b,0)/y.length,
+        y: atmY,
         text: "ATM",
         showarrow: true,
         arrowhead: 2,
-        ax: 28,
-        ay: -28,
-        font: { color: "#d8ad46", size: 11 },
-        arrowcolor: "#d8ad46"
+        ax: 26,
+        ay: -26,
+        font: { color: "#d7ad4a", size: 11 },
+        arrowcolor: "#d7ad4a"
       }
     ]
   };
 
-  const config = { responsive: true, displayModeBar: false };
-  Plotly.react("plot", traces, layout, config);
+  Plotly.react("plot", traces, layout, { responsive: true, displayModeBar: false });
   els.chartNote.textContent = skewRegime === "Left Smirk"
-    ? "Left Smirk: put side richer / downside protection demand"
+    ? "ฝั่ง put แพงกว่า สะท้อนแรง hedge ด้านล่าง"
     : skewRegime === "Right Smirk"
-      ? "Right Smirk: call side richer / upside demand"
+      ? "ฝั่ง call แพงกว่า สะท้อน demand ด้านบน"
       : skewRegime === "Smile"
-        ? "Smile: both wings expensive"
-        : "Flat: IV curve relatively balanced";
-
-  els.skewVal.textContent = "Skew Δ " + els.lastAnalysis.skewDelta.toFixed(4);
-  els.skewRegime.textContent = "Regime: " + skewRegime;
+        ? "สองปีกแพงกว่า ATM ตลาดกำลัง price tail risk"
+        : "โครง IV ค่อนข้าง flat ระวังกรอบสั้น";
 }
 
 function render(data, a){
@@ -700,14 +704,16 @@ function render(data, a){
   els.upperLabel.textContent = "▲ " + fmt(Math.round(a.upper));
 
   els.putFloorBox.innerHTML = a.largestPut ? `
-    <div class="line"><strong style="color:#f6b0bb">${fmt(a.largestPut.strike)}</strong><span class="muted-small">Largest Put OI ${fmt(a.largestPut.put)}</span></div>
+    <div class="line"><strong style="color:#ffc2cb">${fmt(a.largestPut.strike)}</strong><span class="muted-small">Largest Put OI ${fmt(a.largestPut.put)}</span></div>
     <div class="line"><strong>${a.nextPut ? fmt(a.nextPut.strike) : "—"}</strong><span class="muted-small">Next Put</span></div>
-    <div class="line"><strong>${fmt(a.dailyFloor)}</strong><span class="muted-small">Daily Floor</span></div>` : "—";
+    <div class="line"><strong>${fmt(a.dailyFloor)}</strong><span class="muted-small">Daily Floor</span></div>
+    <div class="line"><strong>${a.putOITotal ? fmt(Math.round((a.largestPut.put / a.putOITotal) * 100)) : "—"}%</strong><span class="muted-small">Concentration</span></div>` : "—";
 
   els.callResBox.innerHTML = a.largestCall ? `
-    <div class="line"><strong style="color:#8ee5c2">${fmt(a.largestCall.strike)}</strong><span class="muted-small">Largest Call OI ${fmt(a.largestCall.call)}</span></div>
+    <div class="line"><strong style="color:#a7f0cf">${fmt(a.largestCall.strike)}</strong><span class="muted-small">Largest Call OI ${fmt(a.largestCall.call)}</span></div>
     <div class="line"><strong>${a.nextCall ? fmt(a.nextCall.strike) : "—"}</strong><span class="muted-small">Next Call</span></div>
-    <div class="line"><strong>${fmt(a.dailyCeil)}</strong><span class="muted-small">Daily Ceiling</span></div>` : "—";
+    <div class="line"><strong>${fmt(a.dailyCeil)}</strong><span class="muted-small">Daily Ceiling</span></div>
+    <div class="line"><strong>${a.callOITotal ? fmt(Math.round((a.largestCall.call / a.callOITotal) * 100)) : "—"}%</strong><span class="muted-small">Concentration</span></div>` : "—";
 
   els.planSub.textContent = `${data.ticker} · ${data.name} Futures · ${data.dataType}`;
   els.planBias.textContent = a.bias;
@@ -750,14 +756,14 @@ function render(data, a){
   els.aiSummary.innerHTML = `
     <div style="font-weight:900">AI Summary — ${a.bias} · ${a.conf}</div>
     <div style="color:var(--muted);font-size:12px;margin-top:6px;line-height:1.55">
-      Skew regime: <b>${a.skewRegime}</b>. Smirk Δ = ${a.skewDelta.toFixed(4)}.
-      PCR ${a.pcr.toFixed(2)}. Suggested zone: ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)}.
-      Entry ${fmt(a.entry)}, Stop ${fmt(a.stop)}, T1 ${fmt(a.t1)}, T2 ${fmt(a.t2)}.
+      ภาพรวมตอนนี้เป็น <b>${a.skewRegime}</b> · Smirk Δ = ${a.skewDelta.toFixed(4)}.
+      PCR อยู่ที่ ${a.pcr.toFixed(2)} · โซนที่น่าจับตา ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)}.
+      แผนเทรด: Entry ${fmt(a.entry)} / Stop ${fmt(a.stop)} / T1 ${fmt(a.t1)} / T2 ${fmt(a.t2)}.
     </div>`;
 
   els.foot.textContent = `Updated from IntradayData.txt · ${new Date().toLocaleString("th-TH")}`;
 
-  drawPlot(a.curve, data.spot, a.bias, a.skewRegime);
+  drawPlot(a.curve, data.spot, a.skewRegime);
 }
 
 async function fetchAndRender(){
@@ -771,7 +777,6 @@ async function fetchAndRender(){
     const text = await res.text();
     const data = parseVol2Vol(text);
     const analysis = analyze(data);
-    els.lastAnalysis = analysis;
     render(data, analysis);
     els.errorBox.style.display = "none";
   }catch(e){
@@ -779,10 +784,6 @@ async function fetchAndRender(){
     els.errorBox.textContent = "Error: " + (e && e.message ? e.message : "โหลดไม่สำเร็จ");
     els.statusDot.className = "dot";
     els.statusText.textContent = "โหลดข้อมูลไม่สำเร็จ";
-    if(!els.dashboard.style.display || els.dashboard.style.display === "none"){
-      els.emptyState.style.display = "block";
-      els.emptyState.textContent = "ยังโหลดข้อมูลไม่ได้";
-    }
   }finally{
     btn.disabled = false;
     els.refreshIcon.classList.remove("spin");
