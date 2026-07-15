@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gold Options Dashboard</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --card: #111826;
+    --card-inner: #0b0f17;
+    --border: #232d44;
+    --border-inner: #1c2434;
+    --text: #e6e9f0;
+    --muted: #9aa5b8;
+    --muted-dim: #64748b;
+    --sell: #e5484d;
+    --buy: #3ecf8e;
+    --amber: #d4a537;
+    --info: #7dd3fc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  h1 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .sub { font-size: 12px; color: var(--muted-dim); margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+  button {
+    font-family: inherit; cursor: pointer; border: 1px solid var(--border);
+    background: #1a2233; color: var(--text); border-radius: 8px; padding: 8px 12px;
+    font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;
+    transition: background .15s;
+  }
+  button:hover { background: #232d44; }
+  button:disabled { opacity: .5; cursor: default; }
+  .btn-ghost { background: transparent; border: none; color: var(--muted-dim); font-size: 11px; padding: 4px 0; }
+  .btn-ghost:hover { background: transparent; color: var(--muted); }
+  .spin { animation: spin 1s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .card { border: 1px solid var(--border); background: var(--card); border-radius: 14px; overflow: hidden; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 0 16px; }
+  .avatar { width: 32px; height: 32px; border-radius: 999px; background: #1a2233; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--buy); flex-shrink: 0; }
+  .card-title { font-size: 14px; font-weight: 600; }
+  .card-sub { font-size: 11px; color: var(--muted-dim); margin-top: 1px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 16px; border-bottom: 1px solid var(--border-inner); }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted-dim); display: block; margin-bottom: 3px; }
+  .stat-value { font-size: 17px; font-weight: 600; }
+  .oi-row { padding: 12px 16px; border-bottom: 1px solid var(--border-inner); display: flex; justify-content: space-between; font-size: 13px; }
+  .oi-row .note { font-size: 11px; color: var(--muted-dim); }
+  .move-section { padding: 16px; }
+  .move-label { font-size: 11px; color: var(--muted-dim); margin-bottom: 6px; }
+  .track { position: relative; height: 6px; border-radius: 999px; background: var(--border-inner); }
+  .track-fill { position: absolute; height: 6px; border-radius: 999px; width: 100%; background: linear-gradient(to right, var(--sell), var(--amber), var(--buy)); }
+  .track-marker { position: absolute; top: -3px; width: 3px; height: 14px; background: #fff; border-radius: 2px; }
+  .move-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted-dim); margin-top: 6px; }
+  .move-labels .base { color: #d9dde6; font-weight: 500; }
+  .oi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 16px 16px; }
+  .oi-box { background: var(--card-inner); border: 1px solid var(--border-inner); border-radius: 10px; padding: 12px; }
+  .oi-box .hd { font-size: 10px; color: var(--muted-dim); margin-bottom: 8px; }
+  .oi-box .line { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+  .oi-box .line:last-child { margin-bottom: 0; }
+  .skew-line { padding: 0 16px 16px 16px; font-size: 12px; color: var(--muted); }
+  .plan-bias { padding: 12px 16px 16px 16px; font-size: 13px; color: #cbd3e0; }
+  .zone-box { margin: 0 16px 16px 16px; border-radius: 10px; padding: 14px; border: 1px solid; }
+  .zone-label { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+  .zone-value { font-size: 24px; font-weight: 700; color: #f1f3f7; }
+  .targets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 0 16px 16px 16px; }
+  .target-box { background: var(--card-inner); border: 1px solid var(--border-inner); border-radius: 10px; padding: 10px; text-align: center; }
+  .target-box.swing { background: #191506; border-color: #4a3a12; }
+  .target-box .t-label { font-size: 10px; color: var(--muted-dim); margin-bottom: 4px; }
+  .target-box.swing .t-label { color: var(--amber); }
+  .target-box .t-value { font-size: 15px; font-weight: 600; }
+  .target-box.swing .t-value { color: var(--amber); }
+  .reasons { padding: 0 16px 16px 16px; }
+  .reasons .hd { font-size: 11px; color: var(--muted-dim); margin-bottom: 8px; }
+  .reasons ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  .reasons li { font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: flex-start; }
+  .dot { width: 6px; height: 6px; border-radius: 999px; margin-top: 5px; flex-shrink: 0; }
+  .footnote { padding: 0 16px 14px 16px; font-size: 10px; color: #4b5568; border-top: 1px solid var(--border-inner); padding-top: 10px; margin: 0 16px 16px 16px; border-left: none; }
+  .empty { border: 1px dashed var(--border); border-radius: 14px; padding: 40px 20px; text-align: center; color: var(--muted-dim); font-size: 13px; }
+  .error-box { display: flex; gap: 8px; align-items: flex-start; border: 1px solid #5c2b2b; background: #241414; border-radius: 10px; padding: 10px 12px; font-size: 12px; color: #f3b4b6; }
+  .status-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--buy); display: inline-block; }
+  .status-dot.stale { background: var(--amber); }
+  .status-dot.off { background: #4b5568; }
+  a.linklike { color: inherit; text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <h1>Gold Options Dashboard</h1>
+        <p class="sub" id="statusLine"><span class="status-dot off" id="statusDot"></span> ยังไม่มีข้อมูล — กำลังดึงข้อมูลครั้งแรก...</p>
+      </div>
+      <button id="refreshBtn" title="ดึงข้อมูลตอนนี้">
+        <span id="refreshIcon">⟳</span>
+        <span id="refreshLabel">Refresh</span>
+      </button>
+    </div>
+
+    <div id="errorBox" style="display:none;" class="error-box">
+      <span>⚠</span>
+      <span id="errorText"></span>
+    </div>
+
+    <div id="emptyState" class="empty">กำลังโหลดข้อมูลจาก GitHub...</div>
+
+    <div id="dashboard" style="display:none; flex-direction:column; gap:14px;">
+      <!-- Card 1: OI Analysis -->
+      <div class="card">
+        <div class="card-head">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="avatar" id="avatarTxt">GC</div>
+            <div>
+              <div class="card-title">Options OI Analysis</div>
+              <div class="card-sub" id="tickerLine">—</div>
+            </div>
+          </div>
+          <div style="text-align:right; font-size:11px; color:var(--muted-dim);" id="dateLine">—</div>
+        </div>
+
+        <div style="padding:14px 16px 0 16px;">
+          <span class="badge" id="biasBadge">—</span>
+        </div>
+
+        <div class="stats-grid">
+          <div><span class="stat-label">Future</span><span class="stat-value" id="statSpot">—</span></div>
+          <div><span class="stat-label">Vol (IV)</span><span class="stat-value" id="statVol" style="color:var(--info);">—</span></div>
+          <div><span class="stat-label">Daily Move</span><span class="stat-value" id="statMove">—</span></div>
+          <div><span class="stat-label">Fut Chg</span><span class="stat-value" id="statChg">—</span></div>
+        </div>
+
+        <div class="oi-row">
+          <span class="note" id="oiTotalsLine">—</span>
+          <span class="note" id="oiRatioLine">—</span>
+        </div>
+
+        <div class="move-section">
+          <div class="move-label" id="moveUsedLine">Daily Expected Move</div>
+          <div class="track">
+            <div class="track-fill"></div>
+            <div class="track-marker" id="trackMarker" style="left:50%;"></div>
+          </div>
+          <div class="move-labels">
+            <span id="lowerLabel">▼ —</span>
+            <span class="base" id="baseLabel">BASE —</span>
+            <span id="upperLabel">▲ —</span>
+          </div>
+        </div>
+
+        <div class="oi-grid">
+          <div class="oi-box">
+            <div class="hd">PUT (OTM FLOOR)</div>
+            <div id="putFloorBox"></div>
+          </div>
+          <div class="oi-box">
+            <div class="hd">CALL (RESISTANCE)</div>
+            <div id="callResBox"></div>
+          </div>
+        </div>
+
+        <div class="skew-line" id="skewLine"></div>
+      </div>
+
+      <!-- Card 2: Trade Plan -->
+      <div class="card">
+        <div class="card-head" style="padding-bottom:0;">
+          <div>
+            <div class="card-title">Trade Plan</div>
+            <div class="card-sub" id="planSubLine">—</div>
+          </div>
+          <span id="planBiasTxt" style="font-size:12px; font-weight:700;">—</span>
+        </div>
+
+        <div class="plan-bias" id="planBiasLine">—</div>
+
+        <div id="zoneBoxWrap"></div>
+        <div id="targetsWrap"></div>
+
+        <div class="reasons">
+          <div class="hd">เหตุผล (Signal Breakdown — heuristic v1)</div>
+          <ul id="reasonsList"></ul>
+        </div>
+
+        <div class="footnote">
+          หมายเหตุ: bias นี้เป็นสูตร heuristic เบื้องต้นจาก OI + IV chg + ระยะจาก daily move เท่านั้น
+          ยังไม่ใช่การ replicate อัลกอริทึม SMURF/Wyckoff แบบเต็มรูปแบบ — ปรับ weight ร่วมกันได้ภายหลัง
+        </div>
+      </div>
+
+      <p style="text-align:center; font-size:11px; color:var(--muted-dim); margin: 0 0 8px 0;">
+        อัปเดตอัตโนมัติทุก 5 นาที · แหล่งข้อมูล: pageth/Vol2VolData
+      </p>
+    </div>
+  </div>
+
+<script>
+const RAW_URL = "https://raw.githubusercontent.com/pageth/Vol2VolData/refs/heads/main/IntradayData.txt";
+const AUTO_REFRESH_MS = 5 * 60 * 1000; // 5 minutes
+let autoTimer = null;
+
+function parseVol2Vol(text) {
+  if (!text || !text.trim()) throw new Error("ไม่มีข้อความให้อ่าน");
+  const lines = text.replace(/\r/g, "").split("\n").map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) throw new Error("ข้อมูลไม่ครบ ไม่สามารถอ่านได้");
+
+  const headerLine = lines.find(l => /DTE\)/i.test(l) && /vs\s*[\d,]/i.test(l));
+  let name = "Gold", ticker = "", dte = null, spot = null, futChg = null, dataType = "Open Interest";
+  if (headerLine) {
+    const tickerDte = headerLine.match(/(\S+)\s*\(\s*([\d.]+)\s*DTE\s*\)/i);
+    if (tickerDte) { ticker = tickerDte[1]; dte = parseFloat(tickerDte[2]); }
+    const vsMatch = headerLine.match(/vs\s*([\d,]+\.?\d*)\s*\(\s*([-\d.]+)\s*\)/i);
+    if (vsMatch) { spot = parseFloat(vsMatch[1].replace(/,/g, "")); futChg = parseFloat(vsMatch[2]); }
+    const namePart = headerLine.split("(")[0].trim();
+    if (namePart) name = namePart;
+    const typeMatch = headerLine.match(/-\s*([A-Za-z][A-Za-z ]+)\s*$/);
+    if (typeMatch) dataType = typeMatch[1].trim();
+  }
+
+  const statsLine = lines.find(l => /Put:/i.test(l) && /Call:/i.test(l) && /Vol:/i.test(l));
+  let putOI = null, callOI = null, vol = null, volChg = 0;
+  if (statsLine) {
+    const pM = statsLine.match(/Put:\s*([\d,]+)/i);
+    const cM = statsLine.match(/Call:\s*([\d,]+)/i);
+    const vM = statsLine.match(/Vol:\s*([\d.]+)/i);
+    const vcM = statsLine.match(/Vol\s*Chg:\s*([-\d.]+)/i);
+    if (pM) putOI = parseFloat(pM[1].replace(/,/g, ""));
+    if (cM) callOI = parseFloat(cM[1].replace(/,/g, ""));
+    if (vM) vol = parseFloat(vM[1]);
+    if (vcM) volChg = parseFloat(vcM[1]);
+  }
+
+  const rows = [];
+  for (const line of lines) {
+    const parts = line.split(",");
+    if (parts.length !== 4) continue;
+    const s = parseFloat(parts[0]);
+    if (Number.isNaN(s)) continue;
+    rows.push({ strike: s, call: parseFloat(parts[1]) || 0, put: parseFloat(parts[2]) || 0, settle: parseFloat(parts[3]) || 0 });
+  }
+
+  const missing = [];
+  if (spot === null) missing.push("ราคา future (spot)");
+  if (vol === null) missing.push("ค่า Vol (IV)");
+  if (putOI === null) missing.push("Put OI");
+  if (callOI === null) missing.push("Call OI");
+  if (rows.length === 0) missing.push("ตาราง Strike/Call/Put/Vol Settle");
+  if (missing.length > 0) throw new Error("อ่านข้อมูลไม่ครบ: ไม่พบ " + missing.join(", "));
+
+  return { name, ticker, dte, spot, futChg: futChg ?? 0, dataType, putOITotal: putOI, callOITotal: callOI, vol, volChg, rows };
+}
+
+function computeAnalysis(d) {
+  const { spot, vol, rows } = d;
+  const dailyMove = spot * (vol / 100) / Math.sqrt(252);
+  const base = Math.round(spot / 25) * 25;
+  const upper = spot + dailyMove;
+  const lower = spot - dailyMove;
+  const pctUsed = Math.min(200, Math.abs((spot - base) / dailyMove) * 100);
+
+  const callCandidates = rows.filter(r => r.strike >= base).slice().sort((a, b) => b.call - a.call).slice(0, 3);
+  const putCandidates = rows.filter(r => r.strike <= base).slice().sort((a, b) => b.put - a.put).slice(0, 3);
+  const resistance = callCandidates[0];
+  const resistance2 = callCandidates[1];
+  const support = putCandidates[0];
+  const support2 = putCandidates[1];
+
+  const aboveSpot = rows.filter(r => r.strike > spot).sort((a, b) => a.strike - b.strike);
+  const belowSpot = rows.filter(r => r.strike < spot).sort((a, b) => b.strike - a.strike);
+  const otmCall = aboveSpot[Math.min(4, aboveSpot.length - 1)];
+  const otmPut = belowSpot[Math.min(4, belowSpot.length - 1)];
+  const skew = (otmPut && otmCall) ? otmPut.settle - otmCall.settle : null;
+
+  let sellScore = 0, buyScore = 0;
+  const reasons = [];
+
+  if (d.callOITotal > d.putOITotal * 1.1) {
+    sellScore += 1;
+    reasons.push({ side: "sell", text: `Call OI รวม (${d.callOITotal.toLocaleString()}) มากกว่า Put OI (${d.putOITotal.toLocaleString()}) → แรงต้านฝั่งบนหนักกว่า` });
+  } else if (d.putOITotal > d.callOITotal * 1.1) {
+    buyScore += 1;
+    reasons.push({ side: "buy", text: `Put OI รวม (${d.putOITotal.toLocaleString()}) มากกว่า Call OI (${d.callOITotal.toLocaleString()}) → แรงรับฝั่งล่างหนักกว่า` });
+  }
+  if (resistance && spot >= resistance.strike - dailyMove * 0.3) {
+    sellScore += 1;
+    reasons.push({ side: "sell", text: `ราคาเข้าใกล้ Call cluster ที่ ${resistance.strike.toLocaleString()} (OI ${resistance.call.toLocaleString()})` });
+  }
+  if (support && spot <= support.strike + dailyMove * 0.3) {
+    buyScore += 1;
+    reasons.push({ side: "buy", text: `ราคาเข้าใกล้ Put cluster ที่ ${support.strike.toLocaleString()} (OI ${support.put.toLocaleString()})` });
+  }
+  if (d.volChg < 0) {
+    reasons.push({ side: "neutral", text: `IV กำลังลดลง (Vol Chg ${d.volChg.toFixed(2)}) → เข้าทางกลยุทธ์ fade เมื่อราคาใกล้แนวรับ/ต้าน` });
+  } else if (d.volChg > 0) {
+    reasons.push({ side: "neutral", text: `IV กำลังเพิ่มขึ้น (Vol Chg +${d.volChg.toFixed(2)}) → ระวัง breakout หลุดกรอบ` });
+  }
+  if (pctUsed >= 60) {
+    if (spot > base) sellScore += 0.5; else if (spot < base) buyScore += 0.5;
+    reasons.push({ side: "neutral", text: `ใช้ daily expected move ไปแล้ว ~${pctUsed.toFixed(0)}% ของกรอบวัน` });
+  }
+
+  let bias = "NEUTRAL";
+  if (sellScore - buyScore >= 1) bias = "SELL";
+  else if (buyScore - sellScore >= 1) bias = "BUY";
+  const diff = Math.abs(sellScore - buyScore);
+  const confidence = diff >= 2 ? "สูง" : diff >= 1 ? "กลาง" : "ต่ำ";
+
+  let zoneLow, zoneHigh, t1, t2, swing;
+  if (bias === "SELL" && resistance) {
+    zoneLow = resistance.strike - 10; zoneHigh = resistance.strike + 10;
+    t1 = Math.round((base - dailyMove * 0.5) / 25) * 25;
+    t2 = Math.round((base - dailyMove * 0.85) / 25) * 25;
+    swing = Math.round(lower / 25) * 25;
+  } else if (bias === "BUY" && support) {
+    zoneLow = support.strike - 10; zoneHigh = support.strike + 10;
+    t1 = Math.round((base + dailyMove * 0.5) / 25) * 25;
+    t2 = Math.round((base + dailyMove * 0.85) / 25) * 25;
+    swing = Math.round(upper / 25) * 25;
+  }
+
+  return { dailyMove, base, upper, lower, pctUsed, resistance, resistance2, support, support2, skew, bias, confidence, reasons, zoneLow, zoneHigh, t1, t2, swing };
+}
+
+function biasColor(bias) { return bias === "SELL" ? "#e5484d" : bias === "BUY" ? "#3ecf8e" : "#9aa5b8"; }
+function fmt(n) { return Math.round(n).toLocaleString(); }
+
+function render(d, a, ts) {
+  document.getElementById("emptyState").style.display = "none";
+  document.getElementById("errorBox").style.display = "none";
+  document.getElementById("dashboard").style.display = "flex";
+
+  document.getElementById("statusDot").className = "status-dot";
+  document.getElementById("statusLine").innerHTML =
+    `<span class="status-dot" id="statusDot"></span> อัปเดตล่าสุด ${ts.toLocaleString("th-TH")}`;
+
+  document.getElementById("avatarTxt").textContent = (d.ticker || "GC").slice(0, 2).toUpperCase();
+  document.getElementById("tickerLine").textContent = `${d.ticker} · ${d.name} Futures (${d.dataType})`;
+  document.getElementById("dateLine").innerHTML = `${ts.toLocaleDateString("th-TH")}<br>${ts.toLocaleTimeString("th-TH")}`;
+
+  const bc = biasColor(a.bias);
+  const arrow = a.bias === "SELL" ? "▼" : a.bias === "BUY" ? "▲" : "•";
+  const badge = document.getElementById("biasBadge");
+  badge.textContent = `${arrow} ${a.bias} · ความมั่นใจ ${a.confidence}`;
+  badge.style.color = bc;
+  badge.style.border = `1px solid ${bc}55`;
+  badge.style.background = `${bc}15`;
+
+  document.getElementById("statSpot").textContent = fmt(d.spot);
+  document.getElementById("statVol").textContent = d.vol.toFixed(2) + "%";
+  document.getElementById("statMove").textContent = `±${Math.round(a.dailyMove)} pts`;
+  const chgEl = document.getElementById("statChg");
+  chgEl.textContent = d.futChg > 0 ? `+${d.futChg}` : d.futChg;
+  chgEl.style.color = d.futChg >= 0 ? "var(--buy)" : "var(--sell)";
+
+  document.getElementById("oiTotalsLine").textContent = `Put OI ${fmt(d.putOITotal)} vs Call OI ${fmt(d.callOITotal)}`;
+  document.getElementById("oiRatioLine").textContent =
+    `(${(d.putOITotal / d.callOITotal).toFixed(2)}x ${d.putOITotal >= d.callOITotal ? "Put หนัก" : "Call หนัก"})`;
+
+  document.getElementById("moveUsedLine").textContent = `Daily Expected Move — ใช้ไปแล้ว ${a.pctUsed.toFixed(0)}%`;
+  const pct = Math.min(100, Math.max(0, ((d.spot - a.lower) / (a.upper - a.lower)) * 100));
+  document.getElementById("trackMarker").style.left = pct + "%";
+  document.getElementById("lowerLabel").textContent = `▼ ${fmt(a.lower)}`;
+  document.getElementById("baseLabel").textContent = `BASE ${fmt(a.base)}`;
+  document.getElementById("upperLabel").textContent = `▲ ${fmt(a.upper)}`;
+
+  const putBox = document.getElementById("putFloorBox");
+  putBox.innerHTML = "";
+  if (a.support) putBox.innerHTML += `<div class="line"><span style="color:#fca5a5; font-weight:600;">${fmt(a.support.strike)}</span><span style="color:var(--muted-dim); font-size:11px;">ใหญ่สุด ▲▲</span></div>`;
+  if (a.support2) putBox.innerHTML += `<div class="line"><span>${fmt(a.support2.strike)}</span><span style="color:var(--muted-dim); font-size:11px;">รอง ▲</span></div>`;
+
+  const callBox = document.getElementById("callResBox");
+  callBox.innerHTML = "";
+  if (a.resistance) callBox.innerHTML += `<div class="line"><span style="color:#6ee7b7; font-weight:600;">${fmt(a.resistance.strike)}</span><span style="color:var(--muted-dim); font-size:11px;">ใหญ่สุด ▲▲</span></div>`;
+  if (a.resistance2) callBox.innerHTML += `<div class="line"><span>${fmt(a.resistance2.strike)}</span><span style="color:var(--muted-dim); font-size:11px;">secondary ▲</span></div>`;
+
+  const skewEl = document.getElementById("skewLine");
+  if (a.skew !== null) {
+    skewEl.innerHTML = `Skew (OTM Put IV − OTM Call IV): <span style="color:${a.skew >= 0 ? "#fca5a5" : "#6ee7b7"};">${a.skew.toFixed(4)}</span> (${a.skew >= 0 ? "put ฝั่งซ้ายสูงกว่า (skew ปกติ)" : "call ฝั่งขวาสูงกว่า (skew กลับด้าน)"})`;
+  } else { skewEl.textContent = ""; }
+
+  document.getElementById("planSubLine").textContent = `${d.ticker} · ${d.name} Futures`;
+  document.getElementById("planBiasTxt").textContent = a.bias;
+  document.getElementById("planBiasTxt").style.color = bc;
+  document.getElementById("planBiasLine").innerHTML =
+    `Bias: <span style="color:${bc}; font-weight:600;">${a.bias}</span> · ปัจจุบัน ${fmt(d.spot)} · ใช้ daily move ไปแล้ว ~${a.pctUsed.toFixed(0)}%`;
+
+  const zoneWrap = document.getElementById("zoneBoxWrap");
+  const targetsWrap = document.getElementById("targetsWrap");
+  zoneWrap.innerHTML = ""; targetsWrap.innerHTML = "";
+  if (a.bias !== "NEUTRAL" && a.zoneLow) {
+    zoneWrap.innerHTML = `
+      <div class="zone-box" style="border-color:${bc}55; background:${bc}0d;">
+        <div class="zone-label" style="color:${bc};">${a.bias} ZONE</div>
+        <div class="zone-value">${fmt(a.zoneLow)}–${fmt(a.zoneHigh)}</div>
+      </div>`;
+    targetsWrap.innerHTML = `
+      <div class="targets">
+        <div class="target-box"><div class="t-label">T1</div><div class="t-value">${fmt(a.t1)}</div></div>
+        <div class="target-box"><div class="t-label">T2</div><div class="t-value">${fmt(a.t2)}</div></div>
+        <div class="target-box swing"><div class="t-label">SWING</div><div class="t-value">${fmt(a.swing)}</div></div>
+      </div>`;
+  }
+
+  const list = document.getElementById("reasonsList");
+  list.innerHTML = "";
+  if (a.reasons.length === 0) {
+    list.innerHTML = `<li style="color:var(--muted-dim);">ไม่มีสัญญาณชัดเจน — อยู่ในโซนกลาง</li>`;
+  } else {
+    a.reasons.forEach(r => {
+      const dotColor = r.side === "sell" ? "var(--sell)" : r.side === "buy" ? "var(--buy)" : "var(--muted-dim)";
+      list.innerHTML += `<li><span class="dot" style="background:${dotColor};"></span>${r.text}</li>`;
+    });
+  }
+}
+
+function showError(msg) {
+  document.getElementById("errorBox").style.display = "flex";
+  document.getElementById("errorText").textContent = msg;
+  document.getElementById("statusDot").className = "status-dot stale";
+}
+
+async function fetchAndRender(isAuto) {
+  const btn = document.getElementById("refreshBtn");
+  const icon = document.getElementById("refreshIcon");
+  const label = document.getElementById("refreshLabel");
+  btn.disabled = true;
+  icon.classList.add("spin");
+  label.textContent = "กำลังดึง...";
+  try {
+    const res = await fetch(RAW_URL + "?t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("โหลดไฟล์ไม่สำเร็จ (HTTP " + res.status + ")");
+    const text = await res.text();
+    const d = parseVol2Vol(text);
+    const a = computeAnalysis(d);
+    render(d, a, new Date());
+    document.getElementById("errorBox").style.display = "none";
+  } catch (e) {
+    showError((e && e.message ? e.message : "โหลดข้อมูลไม่สำเร็จ") + (isAuto ? " (จะลองใหม่อัตโนมัติ)" : ""));
+  } finally {
+    btn.disabled = false;
+    icon.classList.remove("spin");
+    label.textContent = "Refresh";
+  }
+}
+
+function startAutoRefresh() {
+  if (autoTimer) clearInterval(autoTimer);
+  autoTimer = setInterval(() => fetchAndRender(true), AUTO_REFRESH_MS);
+}
+
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  fetchAndRender(false);
+  startAutoRefresh(); // reset the timer on manual refresh
+});
+
+// initial load + start auto-refresh loop
+fetchAndRender(false);
+startAutoRefresh();
+</script>
+</body>
+</html>
