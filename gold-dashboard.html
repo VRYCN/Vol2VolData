@@ -3,20 +3,33 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gold Options Dashboard — V5.2 Fixed</title>
+<title>Gold Options Dashboard — V5.3</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
   :root{
-    --bg:#0a1018; --line:#223248; --line2:#1a2433; --text:#e8eef8; --muted:#95a6bf;
-    --buy:#4ed3a4; --sell:#ff707a; --amber:#d7ad4a; --shadow:0 18px 50px rgba(0,0,0,.38);
+    --bg:#0a1018;
+    --panel:#111b2b;
+    --panel2:#0b1320;
+    --line:#223248;
+    --line2:#1a2433;
+    --text:#e8eef8;
+    --muted:#95a6bf;
+    --dim:#6d7e96;
+    --buy:#4ed3a4;
+    --sell:#ff707a;
+    --amber:#d7ad4a;
+    --sky:#80bfff;
+    --shadow:0 18px 50px rgba(0,0,0,.38);
   }
   *{box-sizing:border-box}
   body{
-    margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    margin:0;
+    font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
     color:var(--text);
-    background:radial-gradient(900px 500px at 10% 0%, rgba(80,110,160,.09), transparent 38%),
-               radial-gradient(700px 420px at 85% 0%, rgba(60,90,150,.06), transparent 42%),
-               linear-gradient(180deg,#08101a 0%, var(--bg) 100%);
+    background:
+      radial-gradient(900px 500px at 10% 0%, rgba(80,110,160,.09), transparent 38%),
+      radial-gradient(700px 420px at 85% 0%, rgba(60,90,150,.06), transparent 42%),
+      linear-gradient(180deg,#08101a 0%, var(--bg) 100%);
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:860px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
@@ -24,7 +37,19 @@
   h1{margin:0;font-size:18px;font-weight:900;letter-spacing:-.03em}
   .sub{color:var(--muted);font-size:12px;margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .dot{width:8px;height:8px;border-radius:999px;background:var(--amber);box-shadow:0 0 0 3px rgba(215,173,74,.12)}
-  button{background:linear-gradient(180deg,#162234,#101a2a);border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px;display:flex;align-items:center;gap:7px}
+  button{
+    background:linear-gradient(180deg,#162234,#101a2a);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:9px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    font:inherit;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+  }
   button:disabled{opacity:.6;cursor:default}
   .spin{animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -58,6 +83,11 @@
   .line strong{font-weight:900}
   .chart{width:100%;height:320px}
   .chart-note{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45}
+  .imgbox{width:100%;border:1px solid var(--line2);border-radius:12px;overflow:hidden;background:#08111b;min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;text-align:center;padding:12px}
+  .imgbox img{width:100%;height:auto;display:block}
+  .guide{padding:10px 12px;border:1px solid var(--line2);border-radius:12px;background:rgba(7,13,20,.4)}
+  .guide p{margin:0 0 8px 0;font-size:12px;color:var(--muted);line-height:1.5}
+  .guide p:last-child{margin-bottom:0}
   .targets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px}
   .t{background:linear-gradient(180deg, rgba(12,18,28,.42), rgba(6,10,16,.12));padding:10px;border-radius:10px;text-align:center;border:1px solid var(--line2)}
   .t .lab{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
@@ -77,7 +107,7 @@
 <div class="wrap">
   <div class="top">
     <div>
-      <h1>Gold Options Dashboard — V5.2 Fixed</h1>
+      <h1>Gold Options Dashboard — V5.3</h1>
       <div class="sub" id="statusLine"><span class="dot" id="statusDot"></span><span id="statusText">กำลังดึงข้อมูล...</span></div>
     </div>
     <button id="refreshBtn"><span id="refreshIcon">⟳</span><span id="refreshLabel">Refresh</span></button>
@@ -134,12 +164,30 @@
           <div class="boxhd">Vol Skew / Smirk</div>
           <div id="plot" class="chart"></div>
           <div class="chart-note" id="chartNote">—</div>
+          <div class="guide" style="margin-top:10px">
+            <p><b>Left Smirk:</b> put ด้านล่างแพงกว่า call ด้านบน → ตลาดกังวล downside มากกว่า [web:10][web:66]</p>
+            <p><b>Smile:</b> ทั้ง put และ call ไกล ATM แพงกว่า → ตลาดมอง tail risk ทั้งสองฝั่ง [web:10][web:66]</p>
+            <p><b>Right Smirk:</b> call ด้านบนแพงกว่า → ตลาดเริ่ม price upside / breakout premium [web:10][web:66]</p>
+          </div>
         </div>
 
         <div class="box">
           <div class="boxhd">Call Resistance</div>
           <div id="callResBox">—</div>
         </div>
+      </div>
+
+      <div class="box" style="margin:0 14px 14px">
+        <div class="boxhd">Intraday OI Snapshot</div>
+        <a href="https://raw.githubusercontent.com/pageth/Vol2VolData/images/Intraday+OI.png" target="_blank" title="Open full image">
+          <img
+            id="snapImg"
+            src="https://raw.githubusercontent.com/pageth/Vol2VolData/images/Intraday+OI.png"
+            alt="Gold Intraday OI"
+            class="imgbox"
+            onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'1200\' height=\'700\'><rect width=\'100%\' height=\'100%\' fill=\'%2308111b\'/><text x=\'50%\' y=\'50%\' fill=\'%2395a6bf\' font-size=\'28\' text-anchor=\'middle\' dominant-baseline=\'middle\' font-family=\'Arial\'>Image not ready</text></svg>'"
+          />
+        </a>
       </div>
     </div>
 
@@ -168,6 +216,7 @@
 
 <script>
 const RAW_URL = "https://raw.githubusercontent.com/pageth/Vol2VolData/refs/heads/main/IntradayData.txt";
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
 let els = {};
 
 function fmt(n){ return Number.isFinite(+n) ? Math.round(+n).toLocaleString("en-US") : "—"; }
@@ -176,10 +225,8 @@ function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 
 function parseVol2Vol(text){
   if(!text || !text.trim()) throw new Error("ไม่มีข้อมูลในไฟล์");
-  const rawLines = text.replace(/\r/g,"").split("\n");
-  const lines = rawLines.map(s=>s.trim()).filter(Boolean);
-  let name = "Gold", ticker = "GC", dte = null, spot = null, futChg = 0, dataType = "Open Interest";
-
+  const lines = text.replace(/\r/g,"").split("\n").map(s=>s.trim()).filter(Boolean);
+  let name = "Gold", ticker = "GC", dte = null, spot = null, futChg = null, dataType = "Open Interest";
   const header = lines.find(l => /DTE\)/i.test(l) && /vs\s*[\d,]/i.test(l)) || lines[0] || "";
   if(header){
     const m = header.match(/([^()]+)\s*\(\s*([\d.]+)\s*DTE\s*\)/i);
@@ -189,13 +236,16 @@ function parseVol2Vol(text){
       dte = parseFloat(m[2]);
     }
     const vs = header.match(/vs\s*([\d,]+\.?\d*)\s*\(\s*([-\d.]+)\s*\)/i);
-    if(vs){ spot = parseFloat(vs[1].replace(/,/g,"")); futChg = parseFloat(vs[2]); }
+    if(vs){
+      spot = parseFloat(vs[1].replace(/,/g,""));
+      futChg = parseFloat(vs[2]);
+    }
     const tp = header.match(/-\s*([A-Za-z][A-Za-z ]+)\s*$/);
     if(tp) dataType = tp[1].trim();
   }
 
   const summaryLine = lines.find(l => /Put:\s*[\d,]+/i.test(l) && /Call:\s*[\d,]+/i.test(l) && /Vol:/i.test(l));
-  let putOI = null, callOI = null, vol = null, volChg = 0;
+  let putOI = null, callOI = null, vol = null, volChg = null;
   if(summaryLine){
     const p = summaryLine.match(/Put:\s*([\d,]+)/i); if(p) putOI = parseFloat(p[1].replace(/,/g,""));
     const c = summaryLine.match(/Call:\s*([\d,]+)/i); if(c) callOI = parseFloat(c[1].replace(/,/g,""));
@@ -203,22 +253,34 @@ function parseVol2Vol(text){
     const vc = summaryLine.match(/Vol\s*Chg:\s*([-\d.]+)/i); if(vc) volChg = parseFloat(vc[1]);
   }
 
+  const futureChgLine = lines.find(l => /Future Chg:/i.test(l));
+  if(futChg === null && futureChgLine){
+    const m = futureChgLine.match(/Future Chg:\s*([-\d.]+)/i);
+    if(m) futChg = parseFloat(m[1]);
+  }
+
   const rows = [];
   for(const line of lines){
     const parts = line.split(",").map(s=>s.trim());
     if(parts.length < 4) continue;
     const strike = parseFloat(parts[0].replace(/,/g,""));
-    const call = parseFloat((parts[1]||"0").replace(/,/g,""));
-    const put = parseFloat((parts[2]||"0").replace(/,/g,""));
-    const settle = parseFloat((parts[3]||"0").replace(/,/g,""));
+    const call = parseFloat((parts[1] || "0").replace(/,/g,""));
+    const put = parseFloat((parts[2] || "0").replace(/,/g,""));
+    const settle = parseFloat((parts[3] || "0").replace(/,/g,""));
     if(Number.isFinite(strike)){
-      rows.push({ strike, call: Number.isFinite(call)?call:0, put: Number.isFinite(put)?put:0, settle: Number.isFinite(settle)?settle:0 });
+      rows.push({
+        strike,
+        call: Number.isFinite(call) ? call : 0,
+        put: Number.isFinite(put) ? put : 0,
+        settle: Number.isFinite(settle) ? settle : 0
+      });
     }
   }
 
   if(!rows.length) throw new Error("ไม่พบตาราง strike");
 
   rows.sort((a,b)=>a.strike-b.strike);
+
   if(spot === null){
     const mid = rows[Math.floor(rows.length/2)];
     spot = mid ? mid.strike : rows[0].strike;
@@ -228,7 +290,9 @@ function parseVol2Vol(text){
   if(putOI === null) putOI = rows.reduce((s,r)=>s+r.put,0);
   if(callOI === null) callOI = rows.reduce((s,r)=>s+r.call,0);
 
-  return { name, ticker, dte, spot, futChg, dataType, putOITotal: putOI, callOITotal: callOI, vol, volChg, rows };
+  if(futChg === null) futChg = spot - rows[Math.floor(rows.length/2)].strike;
+
+  return { name, ticker, dte, spot, futChg, dataType, putOITotal: putOI, callOITotal: callOI, vol, volChg: volChg ?? 0, rows };
 }
 
 function buildCurve(rows, spot){
@@ -371,7 +435,7 @@ function render(data, a){
   els.statVolTrend.textContent = `Vol Δ ${data.volChg>=0 ? "+" : ""}${data.volChg.toFixed(2)}`;
   els.statMove.textContent = `±${Math.round(a.dailyMove)} pts`;
   els.statFloorCeil.textContent = `Floor ${fmt(a.dailyFloor)} · Ceil ${fmt(a.dailyCeil)}`;
-  els.statChg.textContent = `${data.futChg>=0 ? "+" : ""}${fmt1(data.futChg)}`;
+  els.statChg.textContent = `${data.futChg===null ? "—" : (data.futChg>=0 ? "+" : "") + fmt1(data.futChg)}`;
   els.statConf.textContent = `${a.conf} · Strength ${a.strength}`;
   els.oiTotals.textContent = `Put OI ${fmt(data.putOITotal)} vs Call OI ${fmt(data.callOITotal)}`;
   els.oiRatio.textContent = `PCR ${a.pcr.toFixed(2)}`;
