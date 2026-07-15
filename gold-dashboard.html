@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gold Options Dashboard — SMIRK v2</title>
+<title>Gold Options Dashboard — SMIRK v3</title>
+<script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
   :root{
     --bg:#06111b;
@@ -229,7 +230,7 @@
   }
   .content{
     display:grid;
-    grid-template-columns:1.3fr .9fr;
+    grid-template-columns:1.2fr 1fr;
     gap:10px;
     padding:0 14px 14px;
   }
@@ -255,30 +256,9 @@
     margin:2px 0;
   }
   .line strong{font-weight:900}
-  .skew-grid{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-  }
-  .chart-wrap{
-    padding:10px;
-    background:linear-gradient(180deg,rgba(7,13,20,.26),rgba(7,13,20,.14));
-    border:1px solid var(--line2);
-    border-radius:12px;
-  }
   .chart{
     width:100%;
-    height:220px;
-    display:block;
-  }
-  .chart-legend{
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-    margin-top:6px;
-    color:var(--muted);
-    font-size:11px;
-    flex-wrap:wrap;
+    height:280px;
   }
   .chart-note{
     font-size:11px;
@@ -367,7 +347,7 @@
   <div class="wrap">
     <div class="top">
       <div>
-        <h1>Gold Options Dashboard — SMIRK v2</h1>
+        <h1>Gold Options Dashboard — SMIRK v3</h1>
         <div class="sub" id="statusLine"><span class="dot" id="statusDot"></span><span id="statusText">กำลังดึงข้อมูล...</span></div>
       </div>
       <button id="refreshBtn"><span id="refreshIcon">⟳</span><span id="refreshLabel">Refresh</span></button>
@@ -426,33 +406,19 @@
             <div id="putFloorBox">—</div>
           </div>
 
-          <div class="skew-grid">
-            <div class="box">
-              <div class="boxhd">Vol Skew / Smirk</div>
-              <div class="chart-wrap">
-                <svg class="chart" id="ivChart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="IV vs strike chart">
-                  <rect x="0" y="0" width="100" height="100" fill="transparent"></rect>
-                  <g id="gridLayer"></g>
-                  <g id="curveLayer"></g>
-                  <g id="axisLayer"></g>
-                </svg>
-                <div class="chart-legend">
-                  <span id="chartLegendLeft">Put side</span>
-                  <span id="chartLegendMid">ATM</span>
-                  <span id="chartLegendRight">Call side</span>
-                </div>
-                <div class="chart-note" id="chartNote">—</div>
-              </div>
-              <div class="line" style="margin-top:8px">
-                <strong id="skewVal">—</strong>
-                <span class="muted-small" id="skewRegime">—</span>
-              </div>
+          <div class="box">
+            <div class="boxhd">Vol Skew / Smirk</div>
+            <div id="plot" class="chart"></div>
+            <div class="chart-note" id="chartNote">—</div>
+            <div class="line" style="margin-top:8px">
+              <strong id="skewVal">—</strong>
+              <span class="muted-small" id="skewRegime">—</span>
             </div>
+          </div>
 
-            <div class="box">
-              <div class="boxhd">CALL (RESISTANCE)</div>
-              <div id="callResBox">—</div>
-            </div>
+          <div class="box">
+            <div class="boxhd">CALL (RESISTANCE)</div>
+            <div id="callResBox">—</div>
           </div>
         </div>
       </div>
@@ -488,8 +454,7 @@
 const RAW_URL = "https://raw.githubusercontent.com/pageth/Vol2VolData/refs/heads/main/IntradayData.txt";
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 let autoTimer = null;
-let statusDot = null;
-let statusText = null;
+let els = {};
 
 function fmt(n){ return Number.isFinite(+n) ? Math.round(+n).toLocaleString("en-US") : "—"; }
 function fmt1(n){ return Number.isFinite(+n) ? (+n).toFixed(1) : "—"; }
@@ -537,22 +502,14 @@ function parseVol2Vol(text){
   return { name, ticker, dte, spot, futChg, dataType, putOITotal: putOI, callOITotal: callOI, vol, volChg, rows };
 }
 
-function buildSkewCurve(rows, spot){
+function buildCurve(rows, spot){
   const sorted = rows.slice().sort((a,b)=>a.strike-b.strike);
-  const near = sorted.filter(r => Math.abs(r.strike - spot) <= 150);
-  const sample = near.length >= 5 ? near : sorted.slice(Math.max(0, sorted.findIndex(r=>r.strike>=spot)-3), Math.min(sorted.length, sorted.findIndex(r=>r.strike>=spot)+4));
-  const arr = sample.length ? sample : sorted.slice(-7);
-  const xs = arr.map(r => r.strike);
-  const ys = arr.map(r => r.settle);
-
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
-  const xPad = 8, yPad = 10, W = 100, H = 100;
-  const mapX = x => xPad + ((x - minX) / ((maxX - minX) || 1)) * (W - xPad*2);
-  const mapY = y => (H - yPad) - ((y - minY) / ((maxY - minY) || 1)) * (H - yPad*2);
-
-  const pts = arr.map((r,i)=>({ x: mapX(xs[i]), y: mapY(ys[i]), strike:r.strike, yv:ys[i] }));
-  return { pts, xs, ys, minX, maxX, minY, maxY };
+  const center = sorted.findIndex(r=>r.strike >= spot);
+  const sample = sorted.slice(Math.max(0, center - 4), Math.min(sorted.length, center + 5));
+  const arr = sample.length >= 3 ? sample : sorted.slice(-7);
+  const xs = arr.map(r=>r.strike);
+  const ys = arr.map(r=>r.settle);
+  return { xs, ys, rows: arr };
 }
 
 function analyze(d){
@@ -582,7 +539,7 @@ function analyze(d){
   if(skewDelta > 0.02) skewRegime = "Left Smirk";
   else if(skewDelta < -0.02) skewRegime = "Right Smirk";
   else {
-    const curve = buildSkewCurve(d.rows, d.spot);
+    const curve = buildCurve(d.rows, d.spot);
     if(curve.ys.length >= 3){
       const mid = curve.ys[Math.floor(curve.ys.length/2)];
       const ends = (curve.ys[0] + curve.ys[curve.ys.length-1]) / 2;
@@ -623,115 +580,140 @@ function analyze(d){
   const swing = bias === "SMIRK SELL" ? Math.round((dailyFloor - dailyMove * 0.15) / 5) * 5 : bias === "SMIRK BUY" ? Math.round((dailyCeil + dailyMove * 0.15) / 5) * 5 : base;
   const invalid = bias === "SMIRK SELL" ? Math.round((zoneHigh + dailyMove * 0.55) / 5) * 5 : bias === "SMIRK BUY" ? Math.round((zoneLow - dailyMove * 0.55) / 5) * 5 : base;
 
-  const curve = buildSkewCurve(d.rows, d.spot);
-
-  return { dailyMove, base, upper, lower, dailyCeil, dailyFloor, basis, pcr, skewDelta, skewRegime, largestCall, nextCall, largestPut, nextPut, bias, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid, curve };
+  return {
+    dailyMove, base, upper, lower, dailyCeil, dailyFloor, basis,
+    pcr, skewDelta, skewRegime, largestCall, nextCall, largestPut, nextPut,
+    bias, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid,
+    curve: buildCurve(d.rows, d.spot)
+  };
 }
 
-function drawGrid(svg){
-  const g = document.getElementById("gridLayer");
-  g.innerHTML = "";
-  for(let i=0;i<=4;i++){
-    const y = 15 + i*17;
-    const line = document.createElementNS("http://www.w3.org/2000/svg","line");
-    line.setAttribute("x1","8"); line.setAttribute("x2","96");
-    line.setAttribute("y1",y); line.setAttribute("y2",y);
-    line.setAttribute("stroke","rgba(255,255,255,.07)");
-    line.setAttribute("stroke-width","0.6");
-    g.appendChild(line);
+function drawPlot(curve, spot, bias, skewRegime){
+  if(!window.Plotly){
+    els.errorBox.style.display = "block";
+    els.errorBox.textContent = "Plotly.js โหลดไม่สำเร็จ — chart จึงไม่แสดง แต่ข้อมูลด้านอื่นยังทำงานได้";
+    return;
   }
-  const mid = document.createElementNS("http://www.w3.org/2000/svg","line");
-  mid.setAttribute("x1","50"); mid.setAttribute("x2","50");
-  mid.setAttribute("y1","10"); mid.setAttribute("y2","92");
-  mid.setAttribute("stroke","rgba(255,255,255,.08)");
-  mid.setAttribute("stroke-width","0.8");
-  g.appendChild(mid);
+
+  const x = curve.rows.map(r=>r.strike);
+  const y = curve.rows.map(r=>r.settle);
+
+  const traces = [
+    {
+      type: "scatter",
+      mode: "lines+markers",
+      x,
+      y,
+      name: "IV proxy",
+      line: { color: "#78b9ff", width: 3, shape: "spline" },
+      marker: { size: 8, color: "#9ec8ff" },
+      hovertemplate: "Strike %{x}<br>IV proxy %{y:.4f}<extra></extra>"
+    },
+    {
+      type: "scatter",
+      mode: "markers",
+      x: [spot],
+      y: [y.reduce((a,b)=>a+b,0)/y.length],
+      name: "ATM",
+      marker: { size: 11, color: "#d8ad46", symbol: "diamond" },
+      hovertemplate: "ATM %{x}<extra></extra>"
+    }
+  ];
+
+  const layout = {
+    margin: {l: 46, r: 16, t: 18, b: 42},
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "#08111b",
+    font: { color: "#eaf0fb", size: 12 },
+    xaxis: {
+      title: { text: "Strike", font: { color: "#95a6bf" } },
+      gridcolor: "rgba(255,255,255,.07)",
+      zeroline: false
+    },
+    yaxis: {
+      title: { text: "IV proxy", font: { color: "#95a6bf" } },
+      gridcolor: "rgba(255,255,255,.07)",
+      zeroline: false
+    },
+    showlegend: true,
+    legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5 },
+    annotations: [
+      {
+        x: spot,
+        y: y.reduce((a,b)=>a+b,0)/y.length,
+        text: "ATM",
+        showarrow: true,
+        arrowhead: 2,
+        ax: 28,
+        ay: -28,
+        font: { color: "#d8ad46", size: 11 },
+        arrowcolor: "#d8ad46"
+      }
+    ]
+  };
+
+  const config = { responsive: true, displayModeBar: false };
+  Plotly.react("plot", traces, layout, config);
+  els.chartNote.textContent = skewRegime === "Left Smirk"
+    ? "Left Smirk: put side richer / downside protection demand"
+    : skewRegime === "Right Smirk"
+      ? "Right Smirk: call side richer / upside demand"
+      : skewRegime === "Smile"
+        ? "Smile: both wings expensive"
+        : "Flat: IV curve relatively balanced";
+
+  els.skewVal.textContent = "Skew Δ " + els.lastAnalysis.skewDelta.toFixed(4);
+  els.skewRegime.textContent = "Regime: " + skewRegime;
 }
-
-function renderCurve(curve, spot){
-  const curveLayer = document.getElementById("curveLayer");
-  curveLayer.innerHTML = "";
-
-  if(!curve.pts || curve.pts.length < 2) return;
-
-  const poly = document.createElementNS("http://www.w3.org/2000/svg","path");
-  const d = curve.pts.map((p,i)=>`${i===0?'M':'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
-  poly.setAttribute("d", d);
-  poly.setAttribute("fill","none");
-  poly.setAttribute("stroke","rgba(121,185,255,.95)");
-  poly.setAttribute("stroke-width","1.8");
-  curveLayer.appendChild(poly);
-
-  curve.pts.forEach((p, i)=>{
-    const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
-    c.setAttribute("cx", p.x.toFixed(2));
-    c.setAttribute("cy", p.y.toFixed(2));
-    c.setAttribute("r", i===Math.floor(curve.pts.length/2) ? "1.9" : "1.4");
-    c.setAttribute("fill", i===Math.floor(curve.pts.length/2) ? "#d8ad46" : "#9ec8ff");
-    curveLayer.appendChild(c);
-  });
-
-  const at = curve.pts.reduce((best,p)=>Math.abs(p.strike-spot)<Math.abs(best.strike-spot)?p:best, curve.pts[0]);
-  const marker = document.createElementNS("http://www.w3.org/2000/svg","circle");
-  marker.setAttribute("cx", at.x.toFixed(2));
-  marker.setAttribute("cy", at.y.toFixed(2));
-  marker.setAttribute("r","2.6");
-  marker.setAttribute("fill","#ffffff");
-  marker.setAttribute("stroke","#0f1b2c");
-  marker.setAttribute("stroke-width","0.8");
-  curveLayer.appendChild(marker);
-}
-
-function setText(id, txt){ document.getElementById(id).textContent = txt; }
 
 function render(data, a){
-  document.getElementById("emptyState").style.display = "none";
-  document.getElementById("dashboard").style.display = "flex";
+  els.emptyState.style.display = "none";
+  els.dashboard.style.display = "flex";
 
-  statusDot.className = "dot";
-  statusText.textContent = "อัปเดตล่าสุด " + new Date().toLocaleString("th-TH");
+  els.statusDot.className = "dot";
+  els.statusText.textContent = "อัปเดตล่าสุด " + new Date().toLocaleString("th-TH");
 
-  setText("avatarTxt", (data.ticker || "GC").slice(0,2).toUpperCase());
-  setText("tickerLine", `${data.ticker} · ${data.name} · ${data.dataType}`);
-  setText("dateLine", new Date().toLocaleString("th-TH"));
+  els.avatarTxt.textContent = (data.ticker || "GC").slice(0,2).toUpperCase();
+  els.tickerLine.textContent = `${data.ticker} · ${data.name} · ${data.dataType}`;
+  els.dateLine.textContent = new Date().toLocaleString("th-TH");
 
-  const badge = document.getElementById("patternBadge");
-  badge.className = "badge " + (a.bias === "SMIRK SELL" ? "sell" : a.bias === "SMIRK BUY" ? "buy" : "neutral");
-  badge.textContent = `${a.bias} · ${a.conf} · Strength ${a.strength}`;
+  els.patternBadge.className = "badge " + (a.bias === "SMIRK SELL" ? "sell" : a.bias === "SMIRK BUY" ? "buy" : "neutral");
+  els.patternBadge.textContent = `${a.bias} · ${a.conf} · Strength ${a.strength}`;
 
-  setText("statSpot", fmt(data.spot));
-  setText("statBasis", `Basis ${a.basis>=0?"+":""}${fmt1(a.basis)}`);
-  setText("statVol", data.vol.toFixed(2) + "%");
-  setText("statVolTrend", `Vol Δ ${data.volChg>=0?"+":""}${data.volChg.toFixed(2)}`);
-  setText("statMove", `±${Math.round(a.dailyMove)} pts`);
-  setText("statFloorCeil", `Floor ${fmt(a.dailyFloor)} · Ceil ${fmt(a.dailyCeil)}`);
-  setText("statChg", `${data.futChg>=0?"+":""}${fmt1(data.futChg)}`);
-  setText("statConf", `${a.conf} · Strength ${a.strength}`);
+  els.statSpot.textContent = fmt(data.spot);
+  els.statBasis.textContent = `Basis ${a.basis>=0 ? "+" : ""}${fmt1(a.basis)}`;
+  els.statVol.textContent = data.vol.toFixed(2) + "%";
+  els.statVolTrend.textContent = `Vol Δ ${data.volChg>=0 ? "+" : ""}${data.volChg.toFixed(2)}`;
+  els.statMove.textContent = `±${Math.round(a.dailyMove)} pts`;
+  els.statFloorCeil.textContent = `Floor ${fmt(a.dailyFloor)} · Ceil ${fmt(a.dailyCeil)}`;
+  els.statChg.textContent = `${data.futChg>=0 ? "+" : ""}${fmt1(data.futChg)}`;
+  els.statConf.textContent = `${a.conf} · Strength ${a.strength}`;
 
-  setText("oiTotals", `Put OI ${fmt(data.putOITotal)} vs Call OI ${fmt(data.callOITotal)}`);
-  setText("oiRatio", `PCR ${a.pcr.toFixed(2)}`);
+  els.oiTotals.textContent = `Put OI ${fmt(data.putOITotal)} vs Call OI ${fmt(data.callOITotal)}`;
+  els.oiRatio.textContent = `PCR ${a.pcr.toFixed(2)}`;
+  els.signalStrength.textContent = `Signal Strength ${a.strength}/100`;
 
   const pos = clamp(((data.spot - a.lower) / (a.upper - a.lower)) * 100, 0, 100);
-  document.getElementById("trackMarker").style.left = pos + "%";
-  setText("lowerLabel", "▼ " + fmt(Math.round(a.lower)));
-  setText("baseLabel", "BASE " + fmt(Math.round(a.base)));
-  setText("upperLabel", "▲ " + fmt(Math.round(a.upper)));
+  els.trackMarker.style.left = pos + "%";
+  els.lowerLabel.textContent = "▼ " + fmt(Math.round(a.lower));
+  els.baseLabel.textContent = "BASE " + fmt(Math.round(a.base));
+  els.upperLabel.textContent = "▲ " + fmt(Math.round(a.upper));
 
-  document.getElementById("putFloorBox").innerHTML =
-    a.largestPut ? `<div class="line"><strong style="color:#f6b0bb">${fmt(a.largestPut.strike)}</strong><span class="muted-small">Largest Put OI ${fmt(a.largestPut.put)}</span></div>
-      <div class="line"><strong>${a.nextPut ? fmt(a.nextPut.strike) : "—"}</strong><span class="muted-small">Next Put</span></div>
-      <div class="line"><strong>${fmt(a.dailyFloor)}</strong><span class="muted-small">Daily Floor</span></div>` : "—";
+  els.putFloorBox.innerHTML = a.largestPut ? `
+    <div class="line"><strong style="color:#f6b0bb">${fmt(a.largestPut.strike)}</strong><span class="muted-small">Largest Put OI ${fmt(a.largestPut.put)}</span></div>
+    <div class="line"><strong>${a.nextPut ? fmt(a.nextPut.strike) : "—"}</strong><span class="muted-small">Next Put</span></div>
+    <div class="line"><strong>${fmt(a.dailyFloor)}</strong><span class="muted-small">Daily Floor</span></div>` : "—";
 
-  document.getElementById("callResBox").innerHTML =
-    a.largestCall ? `<div class="line"><strong style="color:#8ee5c2">${fmt(a.largestCall.strike)}</strong><span class="muted-small">Largest Call OI ${fmt(a.largestCall.call)}</span></div>
-      <div class="line"><strong>${a.nextCall ? fmt(a.nextCall.strike) : "—"}</strong><span class="muted-small">Next Call</span></div>
-      <div class="line"><strong>${fmt(a.dailyCeil)}</strong><span class="muted-small">Daily Ceiling</span></div>` : "—";
+  els.callResBox.innerHTML = a.largestCall ? `
+    <div class="line"><strong style="color:#8ee5c2">${fmt(a.largestCall.strike)}</strong><span class="muted-small">Largest Call OI ${fmt(a.largestCall.call)}</span></div>
+    <div class="line"><strong>${a.nextCall ? fmt(a.nextCall.strike) : "—"}</strong><span class="muted-small">Next Call</span></div>
+    <div class="line"><strong>${fmt(a.dailyCeil)}</strong><span class="muted-small">Daily Ceiling</span></div>` : "—";
 
-  setText("planSub", `${data.ticker} · ${data.name} Futures · ${data.dataType}`);
-  setText("planBias", a.bias);
+  els.planSub.textContent = `${data.ticker} · ${data.name} Futures · ${data.dataType}`;
+  els.planBias.textContent = a.bias;
 
-  document.getElementById("zoneWrap").innerHTML =
-    `<div class="box">
+  els.zoneWrap.innerHTML = `
+    <div class="box">
       <div class="boxhd" style="color:${a.bias==='SMIRK SELL'?'var(--sell)':a.bias==='SMIRK BUY'?'var(--buy)':'var(--amber)'}">
         ${a.bias === "NEUTRAL" ? "NEUTRAL ZONE" : a.bias + " ZONE"}
       </div>
@@ -741,15 +723,15 @@ function render(data, a){
       </div>
     </div>`;
 
-  document.getElementById("targetsWrap").innerHTML = `
+  els.targetsWrap.innerHTML = `
     <div class="t"><div class="lab">Entry</div><div class="val">${fmt(a.entry)}</div></div>
     <div class="t"><div class="lab">Stop</div><div class="val">${fmt(a.stop)}</div></div>
     <div class="t"><div class="lab">Swing</div><div class="val">${fmt(a.swing)}</div></div>
     <div class="t"><div class="lab">T1</div><div class="val">${fmt(a.t1)}</div></div>
     <div class="t"><div class="lab">T2</div><div class="val">${fmt(a.t2)}</div></div>
-    <div class="t"><div class="lab">Basis</div><div class="val">${a.basis>=0?"+":""}${fmt1(a.basis)}</div></div>`;
+    <div class="t"><div class="lab">Basis</div><div class="val">${a.basis>=0 ? "+" : ""}${fmt1(a.basis)}</div></div>`;
 
-  const rl = document.getElementById("reasonsList");
+  const rl = els.reasonsList;
   rl.innerHTML = "";
   if(!a.reasons.length){
     rl.innerHTML = `<li><span class="bullet" style="background:var(--amber)"></span>ยังไม่มี bias ชัดเจน — ตลาดอยู่ในโหมดกลางกรอบ</li>`;
@@ -765,23 +747,7 @@ function render(data, a){
     });
   }
 
-  setText("skewVal", a.skewDelta.toFixed(4));
-  setText("skewRegime", "Regime: " + a.skewRegime);
-  setText("chartNote", a.skewRegime === "Left Smirk"
-    ? "ฝั่ง put ด้านซ้ายของ ATM แพงกว่า สื่อถึง downside protection demand"
-    : a.skewRegime === "Right Smirk"
-      ? "ฝั่ง call ด้านขวาแพงกว่า แปลว่าตลาด pricing upside demand"
-      : a.skewRegime === "Smile"
-        ? "ปลายซ้าย-ขวาแพงกว่า ATM ทั้งสองฝั่ง"
-        : "โครงสร้าง IV ใกล้เคียง flat");
-
-  // SVG chart
-  document.getElementById("gridLayer").innerHTML = "";
-  document.getElementById("curveLayer").innerHTML = "";
-  drawGrid();
-  renderCurve(a.curve, data.spot);
-
-  document.getElementById("aiSummary").innerHTML = `
+  els.aiSummary.innerHTML = `
     <div style="font-weight:900">AI Summary — ${a.bias} · ${a.conf}</div>
     <div style="color:var(--muted);font-size:12px;margin-top:6px;line-height:1.55">
       Skew regime: <b>${a.skewRegime}</b>. Smirk Δ = ${a.skewDelta.toFixed(4)}.
@@ -789,51 +755,95 @@ function render(data, a){
       Entry ${fmt(a.entry)}, Stop ${fmt(a.stop)}, T1 ${fmt(a.t1)}, T2 ${fmt(a.t2)}.
     </div>`;
 
-  document.getElementById("foot").textContent = `Updated from IntradayData.txt · ${new Date().toLocaleString("th-TH")}`;
+  els.foot.textContent = `Updated from IntradayData.txt · ${new Date().toLocaleString("th-TH")}`;
+
+  drawPlot(a.curve, data.spot, a.bias, a.skewRegime);
 }
 
-async function fetchAndRender(isAuto){
-  const btn = document.getElementById("refreshBtn");
-  const icon = document.getElementById("refreshIcon");
-  const label = document.getElementById("refreshLabel");
+async function fetchAndRender(){
+  const btn = els.refreshBtn;
   btn.disabled = true;
-  icon.classList.add("spin");
-  label.textContent = "Loading";
+  els.refreshIcon.classList.add("spin");
+  els.refreshLabel.textContent = "Loading";
   try{
     const res = await fetch(RAW_URL + "?t=" + Date.now(), { cache:"no-store" });
     if(!res.ok) throw new Error("HTTP " + res.status);
     const text = await res.text();
     const data = parseVol2Vol(text);
     const analysis = analyze(data);
+    els.lastAnalysis = analysis;
     render(data, analysis);
-    document.getElementById("errorBox").style.display = "none";
-    statusDot.className = "dot";
-    statusText.textContent = "อัปเดตล่าสุด " + new Date().toLocaleString("th-TH");
+    els.errorBox.style.display = "none";
   }catch(e){
-    document.getElementById("errorBox").style.display = "block";
-    document.getElementById("errorBox").textContent = "Error: " + (e && e.message ? e.message : "โหลดไม่สำเร็จ");
-    if(statusDot) statusDot.className = "dot";
-    if(statusText) statusText.textContent = "โหลดข้อมูลไม่สำเร็จ";
+    els.errorBox.style.display = "block";
+    els.errorBox.textContent = "Error: " + (e && e.message ? e.message : "โหลดไม่สำเร็จ");
+    els.statusDot.className = "dot";
+    els.statusText.textContent = "โหลดข้อมูลไม่สำเร็จ";
+    if(!els.dashboard.style.display || els.dashboard.style.display === "none"){
+      els.emptyState.style.display = "block";
+      els.emptyState.textContent = "ยังโหลดข้อมูลไม่ได้";
+    }
   }finally{
     btn.disabled = false;
-    icon.classList.remove("spin");
-    label.textContent = "Refresh";
+    els.refreshIcon.classList.remove("spin");
+    els.refreshLabel.textContent = "Refresh";
   }
 }
 
 function startAuto(){
   if(autoTimer) clearInterval(autoTimer);
-  autoTimer = setInterval(()=>fetchAndRender(true), AUTO_REFRESH_MS);
+  autoTimer = setInterval(fetchAndRender, AUTO_REFRESH_MS);
 }
 
 window.addEventListener("DOMContentLoaded", ()=>{
-  statusDot = document.getElementById("statusDot");
-  statusText = document.getElementById("statusText");
-  document.getElementById("refreshBtn").addEventListener("click", ()=>{
-    fetchAndRender(false);
+  els = {
+    statusDot: document.getElementById("statusDot"),
+    statusText: document.getElementById("statusText"),
+    refreshBtn: document.getElementById("refreshBtn"),
+    refreshIcon: document.getElementById("refreshIcon"),
+    refreshLabel: document.getElementById("refreshLabel"),
+    emptyState: document.getElementById("emptyState"),
+    errorBox: document.getElementById("errorBox"),
+    dashboard: document.getElementById("dashboard"),
+    avatarTxt: document.getElementById("avatarTxt"),
+    tickerLine: document.getElementById("tickerLine"),
+    dateLine: document.getElementById("dateLine"),
+    patternBadge: document.getElementById("patternBadge"),
+    statSpot: document.getElementById("statSpot"),
+    statBasis: document.getElementById("statBasis"),
+    statVol: document.getElementById("statVol"),
+    statVolTrend: document.getElementById("statVolTrend"),
+    statMove: document.getElementById("statMove"),
+    statFloorCeil: document.getElementById("statFloorCeil"),
+    statChg: document.getElementById("statChg"),
+    statConf: document.getElementById("statConf"),
+    oiTotals: document.getElementById("oiTotals"),
+    oiRatio: document.getElementById("oiRatio"),
+    signalStrength: document.getElementById("signalStrength"),
+    trackMarker: document.getElementById("trackMarker"),
+    lowerLabel: document.getElementById("lowerLabel"),
+    baseLabel: document.getElementById("baseLabel"),
+    upperLabel: document.getElementById("upperLabel"),
+    putFloorBox: document.getElementById("putFloorBox"),
+    callResBox: document.getElementById("callResBox"),
+    planSub: document.getElementById("planSub"),
+    planBias: document.getElementById("planBias"),
+    zoneWrap: document.getElementById("zoneWrap"),
+    targetsWrap: document.getElementById("targetsWrap"),
+    reasonsList: document.getElementById("reasonsList"),
+    aiSummary: document.getElementById("aiSummary"),
+    foot: document.getElementById("foot"),
+    chartNote: document.getElementById("chartNote"),
+    skewVal: document.getElementById("skewVal"),
+    skewRegime: document.getElementById("skewRegime")
+  };
+
+  els.refreshBtn.addEventListener("click", ()=>{
+    fetchAndRender();
     startAuto();
   });
-  fetchAndRender(false);
+
+  fetchAndRender();
   startAuto();
 });
 </script>
