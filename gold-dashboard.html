@@ -1,296 +1,420 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gold Options Dashboard</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gold Options Dashboard — SMIRK V2</title>
 <style>
-  :root{
-    --bg:#07111d;--card:#111c2f;--card2:#0c1626;--line:#273752;--line2:#1b2740;--text:#ecf1fa;--muted:#94a5c0;--dim:#70809b;--buy:#3fd39d;--sell:#f05c68;--amber:#d7ae4a;--info:#79b7ff;--good:#86efac;--warn:#f2b24b;
-    --glow-buy:rgba(63,211,157,.18);--glow-sell:rgba(240,92,104,.18);--glow-amber:rgba(215,174,74,.16);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:
-      radial-gradient(1400px 800px at 50% -10%,#12233f 0%,transparent 55%),
-      radial-gradient(800px 500px at 50% 0%,rgba(35,59,98,.35) 0%,transparent 65%),
-      linear-gradient(180deg,#060d17 0%,var(--bg) 100%);
-      color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:560px;margin:0 auto;padding:16px 14px 24px;display:flex;flex-direction:column;gap:14px}
-  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-  .title{font-size:18px;font-weight:900;line-height:1.1;letter-spacing:-.03em}
-  .sub{font-size:12px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .dot{width:8px;height:8px;border-radius:999px;background:var(--buy);box-shadow:0 0 0 3px rgba(63,211,157,.12)}
-  .dot.stale{background:var(--amber);box-shadow:0 0 0 3px rgba(215,174,74,.12)}
-  button{border:1px solid var(--line);background:linear-gradient(180deg,#18253b,#122033);color:var(--text);border-radius:11px;padding:9px 13px;font:inherit;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 10px 30px rgba(0,0,0,.18)}
-  button:hover{background:linear-gradient(180deg,#1c2a44,#152338)} button:disabled{opacity:.58;cursor:default}
-  .spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-  .card{border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,rgba(17,28,47,.98),rgba(11,19,32,.98));overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.02)}
-  .head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:16px 16px 10px}
-  .brand{display:flex;align-items:center;gap:11px;min-width:0}
-  .avatar{width:40px;height:40px;border-radius:999px;background:radial-gradient(circle at 30% 30%,#20314c 0%,#121d31 55%,#0c1526 100%);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:var(--buy);flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}
-  .card-title{font-size:15px;font-weight:900;line-height:1.2}
-  .card-sub{font-size:11px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
-  .datebox{font-size:12px;color:#d2dbeb;text-align:right;line-height:1.45;background:rgba(13,20,34,.94);border:1px solid #1b2740;border-radius:13px;padding:10px 12px;min-width:106px;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
-  .badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:900;border-radius:999px;padding:7px 11px;margin:0 16px 12px;border:1px solid transparent;letter-spacing:.01em}
-  .badge.sell{background:linear-gradient(180deg,rgba(240,92,104,.18),rgba(240,92,104,.08))}
-  .badge.buy{background:linear-gradient(180deg,rgba(63,211,157,.18),rgba(63,211,157,.08))}
-  .badge.neutral{background:linear-gradient(180deg,rgba(215,174,74,.16),rgba(215,174,74,.08))}
-  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 14px}
-  .metric{background:rgba(8,14,24,.7);border:1px solid var(--line2);border-radius:16px;padding:11px 10px;min-height:70px;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
-  .metric .k{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;line-height:1.1}
-  .metric .v{font-size:16px;font-weight:900;margin-top:7px;line-height:1.05}
-  .metric .s{font-size:11px;color:var(--dim);margin-top:5px}
-  .rowline{display:flex;justify-content:space-between;gap:10px;padding:12px 16px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);font-size:12px;color:#c7d0e2;background:linear-gradient(180deg,rgba(10,16,27,.18),rgba(10,16,27,.08))}
-  .track-wrap{padding:12px 16px 14px}
-  .track-title{font-size:11px;color:var(--dim);margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;align-items:center}
-  .track{position:relative;height:10px;border-radius:999px;background:#182437;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.3)}
-  .track:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--sell) 0%,#d46c56 18%,#d7bf4f 50%,#8cd36f 76%,var(--buy) 100%);opacity:.95}
-  .marker{position:absolute;top:-4px;width:3px;height:18px;background:#fff;border-radius:999px;box-shadow:0 0 0 2px rgba(255,255,255,.12),0 0 16px rgba(255,255,255,.22)}
-  .labels{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--dim);margin-top:7px}
-  .labels span:nth-child(2){color:#f0f4fb;font-weight:800}
-  .split2{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 14px}
-  .box{background:rgba(8,15,26,.68);border:1px solid var(--line2);border-radius:16px;padding:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
-  .boxhd{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
-  .line{display:flex;justify-content:space-between;gap:12px;font-size:13px;line-height:1.45;margin:2px 0}
-  .line .lvl{font-weight:900}
-  .pattern{padding:0 16px 14px}
-  .pattern-card{border-radius:18px;padding:15px;border:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg,rgba(20,29,48,.98),rgba(14,21,36,.94));position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
-  .pattern-card::after{content:"";position:absolute;inset:-40% -20% auto auto;width:180px;height:180px;border-radius:50%;filter:blur(8px);opacity:.18;pointer-events:none}
-  .pattern-card.sell{background:linear-gradient(180deg,rgba(60,18,24,.98),rgba(23,14,24,.96));border-color:rgba(240,92,104,.28)}
-  .pattern-card.sell::after{background:radial-gradient(circle,rgba(240,92,104,.75) 0%,transparent 70%)}
-  .pattern-card.buy{background:linear-gradient(180deg,rgba(17,53,40,.98),rgba(14,24,29,.96));border-color:rgba(63,211,157,.24)}
-  .pattern-card.buy::after{background:radial-gradient(circle,rgba(63,211,157,.7) 0%,transparent 70%)}
-  .pattern-card.neutral{background:linear-gradient(180deg,rgba(35,28,14,.96),rgba(16,22,33,.96));border-color:rgba(215,174,74,.18)}
-  .pat-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px;position:relative;z-index:1}
-  .pat-label{font-size:11px;color:#bac5da;letter-spacing:.04em;text-transform:uppercase}
-  .pat-name{font-size:29px;font-weight:950;line-height:1.02;margin-top:4px;letter-spacing:-.04em}
-  .pat-left{display:flex;flex-direction:column;gap:4px;max-width:82%}
-  .pat-note{font-size:12px;color:#d8e1f1;line-height:1.5}
-  .pat-spark{width:74px;height:52px;opacity:.98;flex-shrink:0}
-  .pat-spark path{fill:none;stroke-width:2.35;stroke-linecap:round;stroke-linejoin:round}
-  .targets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px 14px}
-  .tbox{background:rgba(8,15,26,.68);border:1px solid var(--line2);border-radius:16px;padding:12px;text-align:center}
-  .tbox.swing{border-color:rgba(215,174,74,.6);background:rgba(58,42,13,.34)}
-  .tlab{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
-  .tbox.swing .tlab{color:#f2d28d}
-  .tval{font-size:18px;font-weight:950;margin-top:6px;line-height:1.05}
-  .tmeta{font-size:11px;color:var(--dim);margin-top:5px}
-  .reasons{padding:0 16px 14px}
-  .reasons ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
-  .reasons li{font-size:12px;color:#cad3e3;display:flex;gap:8px;align-items:flex-start;line-height:1.45}
-  .bullet{width:7px;height:7px;border-radius:999px;margin-top:5px;flex-shrink:0}
-  .summary{padding:0 16px 16px}
-  .summary-box{background:rgba(8,15,26,.68);border:1px solid var(--line2);border-radius:16px;padding:12px;font-size:12px;color:#d5deee;line-height:1.58}
-  .foot{padding:10px 16px 16px;border-top:1px solid var(--line2);font-size:10px;color:#66748e;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:linear-gradient(180deg,rgba(10,16,27,.1),rgba(10,16,27,.02))}
-  .empty,.error{border:1px dashed var(--line);border-radius:18px;padding:38px 18px;text-align:center;color:var(--dim);background:rgba(11,17,29,.55)}
-  .error{display:none;border-style:solid;border-color:rgba(240,92,104,.35);background:rgba(60,18,24,.5);color:#f3b1b6}
-  @media (max-width:540px){
-    .grid4{grid-template-columns:repeat(2,1fr)}
-    .split2,.targets{grid-template-columns:1fr}
-    .card-sub{max-width:220px}
-    .pat-left{max-width:100%}
-    .pat-top{flex-direction:column}
-    .datebox{align-self:flex-end}
-  }
+:root{
+--bg:#06111b; --card:#0f1b2c; --muted:#95a6bf; --text:#eaf0fb;
+--buy:#35d09a; --sell:#f15b64; --amber:#d8ad46; --info:#78b9ff;
+--line:#21334b; --line2:#172433;
+} *{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial; background:
+radial-gradient(900px 500px at 10% 0%, rgba(35,56,95,.06), transparent 30%),
+linear-gradient(180deg,#051022 0%, var(--bg) 100%); color:var(--text); -webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:14px auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{margin:0;font-size:18px;font-weight:800}
+.sub{color:var(--muted);font-size:12px;margin-top:6px;display:flex;gap:8px;align-items:center}
+.dot{width:8px;height:8px;border-radius:999px;background:var(--amber)}
+button{background:linear-gradient(180deg,#132535,#0d1a2b);border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer}
+.card{background:linear-gradient(180deg, rgba(18,28,44,.95), rgba(10,16,26,.96));border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.head{display:flex;justify-content:space-between;align-items:flex-start;padding:14px}
+.brand{display:flex;gap:12px;align-items:center}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(180deg,#14233a,#0b1624);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--buy)}
+.card-sub{color:var(--muted);font-size:12px}
+.badge{display:inline-flex;gap:8px;padding:6px 10px;border-radius:999px;font-weight:800;margin:0 14px 12px;border:1px solid transparent}
+.badge.smirk{background:linear-gradient(180deg,rgba(216,173,58,.12),rgba(216,173,58,.06));color:var(--amber)}
+.badge.buy{background:linear-gradient(180deg,rgba(53,208,154,.12),rgba(53,208,154,.06));color:var(--buy)}
+.badge.sell{background:linear-gradient(180deg,rgba(241,91,100,.12),rgba(241,91,100,.06));color:var(--sell)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 14px 14px}
+.metric{background:linear-gradient(180deg, rgba(6,12,20,.45), rgba(6,12,20,.2));border:1px solid var(--line2);padding:10px;border-radius:10px}
+.metric .k{font-size:11px;color:var(--muted);text-transform:uppercase}
+.metric .v{font-weight:800;font-size:16px;margin-top:6px}
+.row{padding:12px 14px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;color:var(--muted)}
+.track{padding:12px 14px}
+.track .bar{height:8px;border-radius:999px;background:#122534;position:relative;overflow:hidden}
+.bar::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,var(--sell) 0%, #d89a4a 40%, #9adf6e 100%)}
+.marker{position:absolute;top:-4px;width:3px;height:16px;background:#fff;left:50%;transform:translateX(-50%)}
+.labels{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;padding-top:8px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.box{background:linear-gradient(180deg,rgba(8,14,22,.25),rgba(6,10,16,.12));border-radius:10px;padding:10px;border:1px solid var(--line2)}
+.boxhd{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase}
+.line{display:flex;justify-content:space-between;align-items:center}
+.line strong{font-weight:800}
+.spark{width:160px;height:56px}
+.targets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}
+.t{background:linear-gradient(180deg, rgba(12,18,28,.4), rgba(6,10,16,.12));padding:10px;border-radius:8px;text-align:center;border:1px solid var(--line2)}
+.t .lab{font-size:11px;color:var(--muted);text-transform:uppercase}
+.t .val{font-weight:900;font-size:16px;margin-top:6px}
+.reasons{padding:10px 14px}
+.reasons ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.reasons li{display:flex;gap:8px;color:var(--muted);font-size:13px}
+.muted-small{color:var(--muted);font-size:12px}
+.summary{padding:12px 14px}
+.summary .box{padding:10px}
+.footer{font-size:11px;color:var(--muted);padding:10px 14px;text-align:center}
+@media (max-width:640px){.metrics{grid-template-columns:repeat(2,1fr)} .spark{width:120px;height:40px}}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div>
-        <div class="title">Gold Options Dashboard</div>
-        <div class="sub" id="statusLine"><span class="dot stale" id="statusDot"></span><span>กำลังโหลดข้อมูลจาก IntradayData.txt...</span></div>
-      </div>
-      <button id="refreshBtn"><span id="refreshIcon">⟳</span><span id="refreshLabel">Refresh</span></button>
-    </div>
+<div class="wrap">
+<div class="top">
+<div>
+<h1>Gold Options Dashboard — SMIRK v2</h1>
+<div class="sub" id="statusLine"><span class="dot" id="statusDot"></span><span id="statusText"> กำลังดึงข้อมูล...</span></div>
+</div>
+<div>
+<button id="refreshBtn"><span id="refreshIcon">⟳</span>&nbsp;<span id="refreshLabel">Refresh</span></button>
+</div>
+</div>
 
-    <div id="errorBox" class="error"></div>
-    <div id="emptyState" class="empty">กำลังโหลดข้อมูลจริงจาก IntradayData.txt...</div>
+<div id="emptyState" class="card" style="padding:20px;text-align:center">กำลังโหลดจาก IntradayData.txt ...</div>
+<div id="errorBox" class="card" style="padding:14px;display:none;color:#fdd; border-color:rgba(241,91,100,.25)"></div>
 
-    <div id="dashboard" style="display:none;flex-direction:column;gap:14px;">
-      <div class="card">
-        <div class="head">
-          <div class="brand">
-            <div class="avatar" id="avatarTxt">GC</div>
-            <div style="min-width:0">
-              <div class="card-title">Options OI Analysis</div>
-              <div class="card-sub" id="tickerLine">—</div>
-            </div>
-          </div>
-          <div class="datebox" id="dateLine">—</div>
-        </div>
-        <div class="badge neutral" id="patternBadge">—</div>
-        <div class="pattern">
-          <div class="pattern-card neutral" id="patternCard">
-            <div class="pat-top">
-              <div class="pat-left">
-                <div class="pat-label">Pattern Detection</div>
-                <div class="pat-name" id="patternName">—</div>
-                <div class="pat-note" id="patternNote">—</div>
-              </div>
-              <svg class="pat-spark" viewBox="0 0 70 52" aria-hidden="true">
-                <path id="sparkPath" d="M4 12 L18 16 L30 24 L42 31 L56 31 L66 34"></path>
-                <circle id="sparkDot" cx="0" cy="0" r="2.8" fill="#ffd166"></circle>
-              </svg>
-            </div>
-          </div>
-        </div>
-        <div class="grid4">
-          <div class="metric"><div class="k">Future</div><div class="v" id="statSpot">—</div><div class="s" id="statBasisLine">Basis —</div></div>
-          <div class="metric"><div class="k">Vol (IV)</div><div class="v" id="statVol" style="color:var(--info)">—</div><div class="s" id="statVolTrend">—</div></div>
-          <div class="metric"><div class="k">Daily Move</div><div class="v" id="statMove">—</div><div class="s" id="statFloorCeil">—</div></div>
-          <div class="metric"><div class="k">Fut Chg</div><div class="v" id="statChg">—</div><div class="s" id="statConf">—</div></div>
-        </div>
-        <div class="rowline">
-          <span id="oiTotalsLine">—</span>
-          <span id="oiRatioLine">—</span>
-        </div>
-        <div class="track-wrap">
-          <div class="track-title"><span id="moveUsedLine">Daily Expected Move</span><span id="signalStrengthLine">Signal Strength —</span></div>
-          <div class="track"><div class="marker" id="trackMarker" style="left:50%"></div></div>
-          <div class="labels"><span id="lowerLabel">—</span><span id="baseLabel">—</span><span id="upperLabel">—</span></div>
-        </div>
-        <div class="split2">
-          <div class="box"><div class="boxhd">PUT (OTM FLOOR)</div><div id="putFloorBox"></div></div>
-          <div class="box"><div class="boxhd">CALL (RESISTANCE)</div><div id="callResBox"></div></div>
-        </div>
-      </div>
+<div id="dashboard" style="display:none;flex-direction:column;gap:12px">
+<div class="card">
+<div class="head">
+<div class="brand">
+<div class="avatar" id="avatarTxt">GC</div>
+<div>
+<div class="card-title" id="titleLine">Options OI Analysis</div>
+<div class="card-sub" id="tickerLine">—</div>
+</div>
+</div>
+<div class="card-sub" id="dateLine">—</div>
+</div>
 
-      <div class="card">
-        <div class="head" style="padding-bottom:10px;">
-          <div class="brand" style="align-items:flex-start">
-            <div style="min-width:0">
-              <div class="card-title">Trade Plan</div>
-              <div class="card-sub" id="planSubLine">—</div>
-            </div>
-          </div>
-          <div id="planBiasTxt" style="font-size:13px;font-weight:900;">—</div>
-        </div>
-        <div class="section" id="planBiasLine" style="padding-top:0;font-size:13px;line-height:1.5;color:#dce5f3">—</div>
-        <div id="zoneBoxWrap"></div>
-        <div id="targetsWrap"></div>
-        <div class="reasons">
-          <div class="boxhd" style="margin-bottom:10px">เหตุผล / AI reasoning</div>
-          <ul id="reasonsList"></ul>
-        </div>
-        <div class="summary">
-          <div class="summary-box" id="aiSummary">—</div>
-        </div>
-        <div class="foot">
-          <span id="footLeft">—</span>
-          <span id="footRight">—</span>
-        </div>
-      </div>
-    </div>
-  </div>
+<div style="padding:0 14px 10px">
+<div id="patternBadge" class="badge smirk">—</div>
+</div>
+
+<div style="display:flex;gap:12px;align-items:stretch;padding:0 14px 10px">
+<div style="flex:1">
+<div class="metrics">
+<div class="metric"><div class="k">Future</div><div class="v" id="statSpot">—</div><div class="muted-small" id="statBasis">Basis —</div></div>
+<div class="metric"><div class="k">Vol (IV)</div><div class="v" id="statVol">—</div><div class="muted-small" id="statVolTrend">—</div></div>
+<div class="metric"><div class="k">Daily Move</div><div class="v" id="statMove">—</div><div class="muted-small" id="statFloorCeil">—</div></div>
+<div class="metric"><div class="k">Fut Chg</div><div class="v" id="statChg">—</div><div class="muted-small" id="statConf">—</div></div>
+</div>
+
+<div class="row" id="oiRow"><div id="oiTotals">—</div><div id="oiRatio">—</div></div>
+
+<div class="track">
+<div class="track"><div class="bar"><div class="marker" id="trackMarker"></div></div></div>
+<div class="labels"><div id="lowerLabel">—</div><div id="baseLabel">—</div><div id="upperLabel">—</div></div>
+</div>
+</div>
+
+<div style="width:200px">
+<div class="box" style="margin-bottom:10px">
+<div class="boxhd">Vol Skew (Smirk)</div>
+<svg class="spark" id="skewSpark" viewBox="0 0 160 56" preserveAspectRatio="none"><path id="skewPath" d="" stroke="#9fbff6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<div style="display:flex;justify-content:space-between;margin-top:6px">
+<div class="muted-small" id="skewLabel">Skew: —</div>
+<div class="muted-small" id="skewRegime">Regime: —</div>
+</div>
+</div>
+
+<div class="box">
+<div class="boxhd">Smirk Δ (OTM Put − OTM Call)</div>
+<div style="font-weight:900;font-size:18px" id="skewVal">—</div>
+<div class="muted-small" style="margin-top:6px">ค่าบวก = Put expensive (Left skew)</div>
+</div>
+</div>
+</div>
+
+<div class="split">
+<div class="box"><div class="boxhd">PUT (OTM FLOOR)</div><div id="putFloor">—</div></div>
+<div class="box"><div class="boxhd">CALL (RESISTANCE)</div><div id="callRes">—</div></div>
+</div>
+</div>
+
+<div class="card">
+<div class="head">
+<div>
+<div class="card-title">Trade Plan</div>
+<div class="card-sub" id="planSub">—</div>
+</div>
+<div id="planBias" style="font-weight:900;color:var(--muted)"></div>
+</div>
+
+<div style="padding:0 14px 10px" id="zoneWrap"></div>
+
+<div class="targets" id="targetsWrap">
+<!-- filled by JS -->
+</div>
+
+<div class="reasons">
+<div class="muted-small">Signal breakdown</div>
+<ul id="reasonsList"></ul>
+</div>
+
+<div class="summary">
+<div class="box" id="aiSummary">—</div>
+</div>
+
+<div class="footer" id="foot">Updated from IntradayData.txt · Auto refresh 5m</div>
+</div>
+</div>
+</div>
+
 <script>
+/*
+Final V2: SMIRK terminology + Skew mini-curve + improved AI summary
+Uses same RAW_URL as before. All UI is single-file.
+*/
 const RAW_URL = 'https://raw.githubusercontent.com/pageth/Vol2VolData/refs/heads/main/IntradayData.txt';
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
-let autoTimer = null;
-function fmt(n){ return Number.isFinite(n) ? Math.round(n).toLocaleString('en-US') : '—'; }
-function fmt1(n){ return Number.isFinite(n) ? n.toFixed(1) : '—'; }
-function clamp(n,min,max){ return Math.min(max, Math.max(min, n)); }
-function pct(n){ return Number.isFinite(n) ? (n>=0?'+':'') + n.toFixed(1) : '—'; }
+
+function toN(n){ return Number.isFinite(n) ? +n : NaN; }
+function fmt(n){ return Number.isFinite(+n) ? Math.round(+n).toLocaleString('en-US') : '—'; }
+function fmt1(n){ return Number.isFinite(+n) ? (+n).toFixed(1) : '—'; }
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
 function parseVol2Vol(text){
-  if(!text || !text.trim()) throw new Error('ไม่มีข้อมูลในไฟล์');
-  const lines = text.replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean);
-  const header = lines.find(l => /DTE\)/i.test(l) && /vs\s*[\d,]/i.test(l)) || '';
-  let name='Gold', ticker='GC', dte=null, spot=null, futChg=0, dataType='Open Interest';
-  if(header){
-    const m = header.match(/([^()]+)\s*\(\s*([\d.]+)\s*DTE\s*\)/i); if(m){ ticker = m[1].trim().split(/\s+/)[0]; name = m[1].trim(); dte = parseFloat(m[2]); }
-    const vs = header.match(/vs\s*([\d,]+\.?\d*)\s*\(\s*([\-\d.]+)\s*\)/i); if(vs){ spot = parseFloat(vs[1].replace(/,/g,'')); futChg = parseFloat(vs[2]); }
-    const type = header.match(/-\s*([A-Za-z][A-Za-z ]+)\s*$/); if(type) dataType = type[1].trim();
-    const rawName = header.split('(')[0].trim(); if(rawName) name = rawName;
-  }
-  const statsLine = lines.find(l => /Put:/i.test(l) && /Call:/i.test(l) && /Vol:/i.test(l));
-  let putOI=null, callOI=null, vol=null, volChg=0;
-  if(statsLine){
-    const p = statsLine.match(/Put:\s*([\d,]+)/i); if(p) putOI = parseFloat(p[1].replace(/,/g,''));
-    const c = statsLine.match(/Call:\s*([\d,]+)/i); if(c) callOI = parseFloat(c[1].replace(/,/g,''));
-    const v = statsLine.match(/Vol:\s*([\d.]+)/i); if(v) vol = parseFloat(v[1]);
-    const vc = statsLine.match(/Vol\s*Chg:\s*([\-\d.]+)/i); if(vc) volChg = parseFloat(vc[1]);
-  }
-  const rows = [];
-  for(const line of lines){
-    const parts = line.split(',');
-    if(parts.length !== 4) continue;
-    const strike = parseFloat(parts[0]);
-    if(Number.isNaN(strike)) continue;
-    rows.push({strike, call: parseFloat(parts[1])||0, put: parseFloat(parts[2])||0, settle: parseFloat(parts[3])||0});
-  }
-  if(spot === null || vol === null || putOI === null || callOI === null || !rows.length) throw new Error('อ่านข้อมูลไม่ครบ');
-  return {name,ticker,dte,spot,futChg,dataType,putOITotal:putOI,callOITotal:callOI,vol,volChg,rows};
+if(!text || !text.trim()) throw new Error('ไม่มีข้อมูล');
+const L = text.replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean);
+const header = L.find(l=>/DTE)/i.test(l) && /vs\s*[\d,]/i.test(l)) || '';
+let name='Gold', ticker='GC', dte=null, spot=null, futChg=0, dataType='Open Interest';
+if(header){
+const m = header.match(/([^()]+)\s*\s*([\d.]+)\s*DTE\s*/i);
+if(m){ ticker = m.trim().split(/\s+/); name = m.trim(); dte = +m; }
+
+const vs = header.match(/vs\s*([\d,]+.?\d*)\s*\s*([-\d.]+)\s*/i);
+if(vs){ spot = parseFloat(vs.replace(/,/g,'')); futChg = parseFloat(vs); }
+
+const tp = header.match(/-\s*([A-Za-z][A-Za-z]+)\s*$/); if(tp) dataType = tp.trim();
+
+} const statsLine = L.find(l => /Put:/i.test(l) && /Call:/i.test(l) && /Vol:/i.test(l));
+let putOI=null, callOI=null, vol=null, volChg=0;
+if(statsLine){
+const p = statsLine.match(/Put:\s*([\d,]+)/i); if(p) putOI = parseFloat(p.replace(/,/g,''));
+
+const c = statsLine.match(/Call:\s*([\d,]+)/i); if(c) callOI = parseFloat(c.replace(/,/g,''));
+
+const v = statsLine.match(/Vol:\s*([\d.]+)/i); if(v) vol = parseFloat(v);
+
+const vc = statsLine.match(/Vol\sChg:\s([-\d.]+)/i); if(vc) volChg = parseFloat(vc);
+
+} const rows = [];
+for(const ln of L){
+const parts = ln.split(',');
+if(parts.length !== 4) continue;
+const strike = parseFloat(parts);
+if(Number.isNaN(strike)) continue;
+rows.push({ strike, call: parseFloat(parts
+)||0, put: parseFloat(parts
+)||0, settle: parseFloat(parts
+)||0 });
+} if(spot==null||vol==null||putOI==null||callOI==null||rows.length===0) throw new Error('อ่านข้อมูลไม่ครบจากไฟล์');
+return { name, ticker, dte, spot, futChg, dataType, putOITotal:putOI, callOITotal:callOI, vol, volChg, rows };
 }
+
+function computeSkew(rows, spot){
+// produce simple vector of moneyness buckets and implied settle (as proxy for IV)
+// We will render min-skew curve using settle prices normalized.
+const vec = rows.slice().sort((a,b)=>a.strike-b.strike);
+// take 7 points around ATM
+const atIndex = vec.findIndex(r=>r.strike>=spot);
+const start = Math.max(0, (atIndex-3));
+const sample = vec.slice(start, start+7);
+// fallback if insufficient
+if(sample.length<3) sample.push(...vec.slice(-3));
+// build arrays
+const xs = sample.map(r=>r.strike);
+const ys = sample.map(r=>r.settle);
+return { xs, ys, sample };
+}
+
 function analyze(d){
-  const dailyMove = d.spot * (d.vol/100) / Math.sqrt(252);
-  const base = Math.round(d.spot / 25) * 25;
-  const upper = d.spot + dailyMove, lower = d.spot - dailyMove;
-  const dailyCeil = Math.round(upper/25)*25, dailyFloor = Math.round(lower/25)*25;
-  const basis = d.spot - (d.rows.reduce((a,r)=>a+r.strike,0)/d.rows.length);
-  const calls = [...d.rows].filter(r=>r.strike>=d.spot).sort((a,b)=>b.call-a.call);
-  const puts = [...d.rows].filter(r=>r.strike<=d.spot).sort((a,b)=>b.put-a.put);
-  const largestCall = calls[0] || null, secondCall = calls[1] || null;
-  const largestPut = puts[0] || null, secondPut = puts[1] || null;
-  const above = d.rows.filter(r=>r.strike>d.spot).sort((a,b)=>a.strike-b.strike);
-  const below = d.rows.filter(r=>r.strike<d.spot).sort((a,b)=>b.strike-a.strike);
-  const otmCall = above[Math.min(4, above.length-1)] || null;
-  const otmPut = below[Math.min(4, below.length-1)] || null;
-  const leftSkew = (otmPut && otmCall) ? (otmPut.settle - otmCall.settle) : 0;
-  const volTrend = d.volChg > 0.05 ? 'Rising' : d.volChg < -0.05 ? 'Falling' : 'Flat';
-  const pcr = d.putOITotal / d.callOITotal;
-  let bias = 'NEUTRAL'; let scoreSell = 0, scoreBuy = 0; const reasons = [];
-  if(pcr > 1.12){ scoreBuy += 1; reasons.push(['buy', `Put/Call ratio ${pcr.toFixed(2)} บอกฝั่ง put หนากว่า`]); }
-  else if(pcr < 0.88){ scoreSell += 1; reasons.push(['sell', `Put/Call ratio ${pcr.toFixed(2)} บอกฝั่ง call หนากว่า`]); }
-  if(d.volChg > 0.12){ scoreSell += 0.7; reasons.push(['neutral', `Vol Trend: Rising (${pct(d.volChg)}) ระวัง breakout`]); }
-  else if(d.volChg < -0.12){ scoreBuy += 0.7; reasons.push(['neutral', `Vol Trend: Falling (${pct(d.volChg)}) ช่วย fade`]); }
-  if(largestCall && d.spot >= largestCall.strike - dailyMove*0.35){ scoreSell += 1; reasons.push(['sell', `ราคาใกล้ Largest Call Cluster ที่ ${fmt(largestCall.strike)}`]); }
-  if(largestPut && d.spot <= largestPut.strike + dailyMove*0.35){ scoreBuy += 1; reasons.push(['buy', `ราคาใกล้ Largest Put Cluster ที่ ${fmt(largestPut.strike)}`]); }
-  if(leftSkew > 0){ scoreSell += 0.5; reasons.push(['sell', `Left Skew สูง ${leftSkew.toFixed(4)} = put ด้านซ้ายแพงกว่า`]); }
-  else if(leftSkew < 0){ scoreBuy += 0.5; reasons.push(['buy', `Left Skew กลับด้าน ${leftSkew.toFixed(4)}`]); }
-  const distUsed = (Math.abs(d.spot - base) / Math.max(dailyMove,1)) * 100;
-  if(distUsed > 55){ if(d.spot > base) scoreSell += 0.5; else scoreBuy += 0.5; reasons.push(['neutral', `ใช้ daily range ไปแล้ว ${distUsed.toFixed(0)}%`]); }
-  if(scoreSell - scoreBuy >= 1.2) bias='SMURF SELL'; else if(scoreBuy - scoreSell >= 1.2) bias='SMURF BUY';
-  const pattern = bias === 'SMURF SELL' ? 'LEFT SKEW / SELL PRESSURE' : bias === 'SMURF BUY' ? 'RIGHT SKEW / BUY PRESSURE' : 'BALANCED RANGE';
-  const strength = Math.min(100, Math.round(55 + Math.abs(scoreSell-scoreBuy)*18 + Math.min(15, Math.abs(d.volChg)*20)));
-  const confidence = strength >= 80 ? 'High' : strength >= 66 ? 'Mid' : 'Low';
-  const zoneLow = bias === 'SMURF SELL' && largestCall ? largestCall.strike - 20 : bias === 'SMURF BUY' && largestPut ? largestPut.strike - 20 : dailyFloor;
-  const zoneHigh = bias === 'SMURF SELL' && largestCall ? largestCall.strike + 20 : bias === 'SMURF BUY' && largestPut ? largestPut.strike + 20 : dailyCeil;
-  const entry = bias === 'SMURF SELL' && largestCall ? Math.round((largestCall.strike + dailyMove*0.05)/5)*5 : bias === 'SMURF BUY' && largestPut ? Math.round((largestPut.strike - dailyMove*0.05)/5)*5 : base;
-  const stop = bias === 'SMURF SELL' ? Math.round((zoneHigh + dailyMove*0.28)/5)*5 : bias === 'SMURF BUY' ? Math.round((zoneLow - dailyMove*0.28)/5)*5 : dailyCeil;
-  const target1 = bias === 'SMURF SELL' ? Math.round((base - dailyMove*0.45)/5)*5 : bias === 'SMURF BUY' ? Math.round((base + dailyMove*0.45)/5)*5 : dailyCeil;
-  const target2 = bias === 'SMURF SELL' ? Math.round((base - dailyMove*0.8)/5)*5 : bias === 'SMURF BUY' ? Math.round((base + dailyMove*0.8)/5)*5 : dailyFloor;
-  const swing = bias === 'SMURF SELL' ? Math.round((dailyFloor - dailyMove*0.2)/5)*5 : bias === 'SMURF BUY' ? Math.round((dailyCeil + dailyMove*0.2)/5)*5 : Math.round(base/5)*5;
-  const invalidation = bias === 'SMURF SELL' ? Math.round((zoneHigh + dailyMove*0.55)/5)*5 : bias === 'SMURF BUY' ? Math.round((zoneLow - dailyMove*0.55)/5)*5 : base;
-  return {dailyMove,base,upper,lower,dailyFloor,dailyCeil,basis,leftSkew,volTrend,pcr,largestCall,secondCall,largestPut,secondPut,bias,pattern,strength,confidence,reasons,zoneLow,zoneHigh,entry,stop,target1,target2,swing,invalidation};
+const dailyMove = d.spot * (d.vol/100) / Math.sqrt(252);
+const base = Math.round(d.spot/25)*25;
+const upper = d.spot + dailyMove, lower = d.spot - dailyMove;
+const ceil = Math.round(upper/25)25, floor = Math.round(lower/25)25;
+const meanStrike = d.rows.reduce((s,r)=>s+r.strike,0)/d.rows.length;
+const basis = d.spot - meanStrike;
+// clusters
+const calls = d.rows.filter(r=>r.strike>=d.spot).sort((a,b)=>b.call-a.call);
+const puts = d.rows.filter(r=>r.strike<=d.spot).sort((a,b)=>b.put-a.put);
+const largestCall = calls||null, largestPut = puts||null;
+const skew = computeSkew(d.rows, d.spot);
+// compute "smirk delta" as OTM put settle - OTM call settle (use 1-2 nearest OTM)
+const above = d.rows.filter(r=>r.strike>d.spot).sort((a,b)=>a.strike-b.strike);
+const below = d.rows.filter(r=>r.strike<d.spot).sort((a,b)=>b.strike-a.strike);
+const otmCall = above
+||above||null;
+const otmPut = below
+||below||null;
+const smirkDelta = (otmPut && otmCall) ? (otmPut.settle - otmCall.settle) : 0;
+// skew regime
+let regime = 'Flat';
+if(smirkDelta > 0.02) regime = 'Left Smirk';
+else if(smirkDelta < -0.02) regime = 'Right Smirk';
+else {
+// check smile
+const ys = skew.ys;
+if(ys.length>=3){
+const mid = ys[Math.floor(ys.length/2)];
+const endsAvg = (ys+ys[ys.length-1])/2;
+if(endsAvg > mid*1.02) regime = 'Smile';
 }
-function colorForBias(b){ return b==='SMURF SELL' ? 'var(--sell)' : b==='SMURF BUY' ? 'var(--buy)' : 'var(--amber)'; }
-function render(d,a,ts){
-  emptyState.style.display='none'; errorBox.style.display='none'; dashboard.style.display='flex';
-  statusDot.className='dot'; statusLine.innerHTML = `<span class="dot"></span><span>อัปเดตล่าสุด ${ts.toLocaleString('th-TH')}</span>`;
-  avatarTxt.textContent = (d.ticker || 'GC').slice(0,2).toUpperCase(); tickerLine.textContent = `${d.ticker} · ${d.name} · ${d.dataType}`; dateLine.innerHTML = `${ts.toLocaleDateString('th-TH')}<br>${ts.toLocaleTimeString('th-TH')}`;
-  const c = colorForBias(a.bias);
-  patternBadge.className = `badge ${a.bias==='SMURF SELL'?'sell':a.bias==='SMURF BUY'?'buy':'neutral'}`;
-  patternBadge.textContent = `${a.bias} · Confidence ${a.confidence} · Signal ${a.strength}`; patternBadge.style.color = c; patternBadge.style.borderColor = `${c}55`;
-  patternCard.className = `pattern-card ${a.bias==='SMURF SELL'?'sell':a.bias==='SMURF BUY'?'buy':'neutral'}`; patternName.textContent = a.bias; patternNote.textContent = `${a.pattern} | Left Skew ${a.leftSkew.toFixed(4)} | PCR ${a.pcr.toFixed(2)}`;
-  sparkPath.setAttribute('d', a.bias==='SMURF SELL' ? 'M5 10 L20 16 L31 24 L42 32 L55 31 L66 35' : a.bias==='SMURF BUY' ? 'M4 34 L18 29 L31 22 L42 16 L56 16 L66 12' : 'M4 24 L18 24 L30 25 L42 24 L56 24 L66 24'); sparkPath.setAttribute('stroke', a.bias==='SMURF SELL' ? '#f05c68' : a.bias==='SMURF BUY' ? '#3fd39d' : '#f2d28d'); sparkDot.setAttribute('cx', a.bias==='SMURF SELL' ? '55' : a.bias==='SMURF BUY' ? '56' : '42'); sparkDot.setAttribute('cy', a.bias==='SMURF SELL' ? '31' : a.bias==='SMURF BUY' ? '16' : '24'); sparkDot.setAttribute('fill', a.bias==='SMURF SELL' ? '#f05c68' : a.bias==='SMURF BUY' ? '#3fd39d' : '#f2d28d');
-  statSpot.textContent = fmt(d.spot); statBasisLine.textContent = `Basis ${a.basis>=0?'+':''}${fmt1(a.basis)}`; statVol.textContent = `${d.vol.toFixed(2)}%`; statVolTrend.textContent = `Vol Trend ${a.volTrend}`; statMove.textContent = `±${Math.round(a.dailyMove)} pts`; statFloorCeil.textContent = `Floor ${fmt(a.dailyFloor)} · Ceiling ${fmt(a.dailyCeil)}`; statChg.textContent = `${d.futChg>=0?'+':''}${fmt1(d.futChg)}`; statChg.style.color = d.futChg>=0 ? 'var(--buy)' : 'var(--sell)'; statConf.textContent = `Signal ${a.strength}/100 · ${a.confidence}`; statConf.style.color = c;
-  oiTotalsLine.textContent = `Put OI ${fmt(d.putOITotal)} vs Call OI ${fmt(d.callOITotal)}`; oiRatioLine.textContent = `PCR ${a.pcr.toFixed(2)} (${a.pcr>=1 ? 'Put heavy' : 'Call heavy'})`; signalStrengthLine.textContent = `Signal Strength ${a.strength}/100`;
-  const pctPos = clamp(((d.spot-a.lower)/(a.upper-a.lower))*100,0,100); trackMarker.style.left = pctPos + '%'; lowerLabel.textContent = `▼ ${fmt(a.lower)}`; baseLabel.textContent = `BASE ${fmt(a.base)}`; upperLabel.textContent = `▲ ${fmt(a.upper)}`;
-  putFloorBox.innerHTML = `<div class="line"><span class="lvl" style="color:#f8a9b4;">${a.largestPut?fmt(a.largestPut.strike):'—'}</span><span class="muted">Largest Put Cluster</span></div><div class="line"><span>${a.secondPut?fmt(a.secondPut.strike):'—'}</span><span class="muted">Next Put Cluster</span></div><div class="line"><span class="lvl">${fmt(a.dailyFloor)}</span><span class="muted">Daily Floor</span></div>`;
-  callResBox.innerHTML = `<div class="line"><span class="lvl" style="color:#8ee5c2;">${a.largestCall?fmt(a.largestCall.strike):'—'}</span><span class="muted">Largest Call Cluster</span></div><div class="line"><span>${a.secondCall?fmt(a.secondCall.strike):'—'}</span><span class="muted">Next Call Cluster</span></div><div class="line"><span class="lvl">${fmt(a.dailyCeil)}</span><span class="muted">Daily Ceiling</span></div>`;
-  planSubLine.textContent = `${d.ticker} · ${d.name} Futures · ${d.dataType}`; planBiasTxt.textContent = a.bias; planBiasTxt.style.color = c; planBiasLine.innerHTML = `Bias: <b style="color:${c}">${a.bias}</b> · Pattern: ${a.pattern} · Confidence ${a.confidence} · Strength ${a.strength}/100`;
-  zoneBoxWrap.innerHTML = `<div class="section" style="padding-top:0"><div class="box" style="border-color:${c}55;background:${c}12;"><div class="boxhd" style="color:${c};">${a.bias==='NEUTRAL'?'NEUTRAL ZONE':a.bias+' ZONE'}</div><div class="line" style="font-size:23px;font-weight:950;line-height:1.1;margin-top:3px"><span>${fmt(a.zoneLow)}</span><span>–</span><span>${fmt(a.zoneHigh)}</span></div><div class="line muted" style="font-size:12px;margin-top:8px;display:block">Entry ${fmt(a.entry)} · Stop ${fmt(a.stop)} · Invalidation ${fmt(a.invalidation)}</div></div></div>`;
-  targetsWrap.innerHTML = `<div class="targets"><div class="tbox"><div class="tlab">Entry</div><div class="tval">${fmt(a.entry)}</div><div class="tmeta">Basis ${a.basis>=0?'+':''}${fmt1(a.basis)}</div></div><div class="tbox"><div class="tlab">Stop</div><div class="tval">${fmt(a.stop)}</div><div class="tmeta">Invalidation ${fmt(a.invalidation)}</div></div><div class="tbox swing"><div class="tlab">Swing</div><div class="tval">${fmt(a.swing)}</div><div class="tmeta">Target2 ${fmt(a.target2)}</div></div></div><div class="targets" style="padding-top:0"><div class="tbox"><div class="tlab">Target1</div><div class="tval">${fmt(a.target1)}</div><div class="tmeta">First objective</div></div><div class="tbox"><div class="tlab">Target2</div><div class="tval">${fmt(a.target2)}</div><div class="tmeta">Extension</div></div><div class="tbox"><div class="tlab">Basis</div><div class="tval">${a.basis>=0?'+':''}${fmt1(a.basis)}</div><div class="tmeta">Future - mean strike</div></div></div>`;
-  reasonsList.innerHTML=''; if(!a.reasons.length){ reasonsList.innerHTML = '<li><span class="bullet" style="background:var(--amber)"></span>ไม่มี bias ชัดเจน: ราคาอยู่กลางกรอบและแรง OI ใกล้เคียงกัน</li>'; } else a.reasons.slice(0,5).forEach(([side,text])=>{ reasonsList.innerHTML += `<li><span class="bullet" style="background:${side==='sell'?'var(--sell)':side==='buy'?'var(--buy)':'var(--amber)'}"></span>${text}</li>`; });
-  aiSummary.innerHTML = `${a.bias==='NEUTRAL' ? 'AI Summary: ตลาดยังเป็น range-bound.' : `AI Summary: ${a.bias} มีน้ำหนักจาก ${a.pattern.toLowerCase()} และ strength ${a.strength}/100.`} PCR ${a.pcr.toFixed(2)}, Left Skew ${a.leftSkew.toFixed(4)}, Vol Trend ${a.volTrend}. โซนที่จับตา: ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)} | Entry ${fmt(a.entry)} | Stop ${fmt(a.stop)} | T1 ${fmt(a.target1)} | T2 ${fmt(a.target2)}.`;
-  footLeft.textContent = `${d.ticker} · Trade Plan · ${ts.toLocaleDateString('th-TH')}`; footRight.textContent = `${a.bias}`;
+} // bias scoring
+let sell=0,buy=0; const reasons=[];
+const pcr = d.putOITotal / d.callOITotal;
+if(pcr>1.12){ buy+=1; reasons.push(['buy',PCR ${pcr.toFixed(2)} → Put heavy]); }
+else if(pcr<0.88){ sell+=1; reasons.push(['sell',PCR ${pcr.toFixed(2)} → Call heavy]); }
+if(d.volChg>0.12){ sell+=0.7; reasons.push(['neutral',IV rising (${d.volChg.toFixed(2)}) → risk of breakout]); }
+else if(d.volChg<-0.12){ buy+=0.7; reasons.push(['neutral',IV falling (${d.volChg.toFixed(2)}) → fade setups favored]); }
+if(largestCall && d.spot>=largestCall.strike - dailyMove*0.35){ sell+=1; reasons.push(['sell',Price near largest Call cluster ${largestCall.strike}Price near largest Call cluster ${largestCall.strike}]); }
+if(largestPut && d.spot<=largestPut.strike + dailyMove*0.35){ buy+=1; reasons.push(['buy',Price near largest Put cluster ${largestPut.strike}Price near largest Put cluster ${largestPut.strike}]); }
+if(smirkDelta>0.02){ sell+=0.6; reasons.push(['sell',Left smirk (put expensive) Δ ${smirkDelta.toFixed(4)}]); }
+else if(smirkDelta<-0.02){ buy+=0.6; reasons.push(['buy',Right smirk (call expensive) Δ ${smirkDelta.toFixed(4)}]); }
+const diff = sell-buy;
+let bias = 'NEUTRAL';
+if(diff>=1.2) bias='SMIRK SELL';
+else if(diff<=-1.2) bias='SMIRK BUY';
+const strength = Math.min(100, Math.round(50 + Math.abs(diff)20 + Math.min(20, Math.abs(d.volChg)30)));
+const conf = strength>=80?'High':strength>=66?'Mid':'Low';
+// trade plan heuristics
+const zoneLow = bias==='SMIRK SELL' && largestCall ? largestCall.strike-20 : bias==='SMIRK BUY' && largestPut ? largestPut.strike-20 : floor;
+const zoneHigh = bias==='SMIRK SELL' && largestCall ? largestCall.strike+20 : bias==='SMIRK BUY' && largestPut ? largestPut.strike+20 : ceil;
+const entry = bias==='SMIRK SELL' && largestCall ? Math.round(largestCall.strike/5)5 : bias==='SMIRK BUY' && largestPut ? Math.round(largestPut.strike/5)5 : base;
+const stop = bias==='SMIRK SELL' ? Math.round((zoneHigh + dailyMove0.28)/5)5 : bias==='SMIRK BUY' ? Math.round((zoneLow - dailyMove0.28)/5)5 : ceil;
+const t1 = bias==='SMIRK SELL' ? Math.round((base - dailyMove0.45)/5)5 : bias==='SMIRK BUY' ? Math.round((base + dailyMove0.45)/5)5 : base;
+const t2 = bias==='SMIRK SELL' ? Math.round((base - dailyMove0.8)/5)5 : bias==='SMIRK BUY' ? Math.round((base + dailyMove0.8)/5)5 : base;
+const swing = bias==='SMIRK SELL' ? Math.round((floor - dailyMove0.15)/5)5 : bias==='SMIRK BUY' ? Math.round((ceil + dailyMove0.15)/5)5 : base;
+const invalid = bias==='SMIRK SELL' ? Math.round((zoneHigh + dailyMove0.55)/5)5 : bias==='SMIRK BUY' ? Math.round((zoneLow - dailyMove0.55)/5)5 : base;
+
+return {
+dailyMove, base, upper, lower, ceil, floor, basis,
+largestCall, largestPut, pcr, skew, smirkDelta, regime,
+bias, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid
+};
 }
-function showError(msg){ errorBox.style.display='block'; errorBox.textContent = msg; statusDot.className='dot stale'; }
-async function fetchAndRender(isAuto){ refreshBtn.disabled = true; refreshIcon.classList.add('spin'); refreshLabel.textContent = 'Loading'; try{ const res = await fetch(RAW_URL + '?t=' + Date.now(), {cache:'no-store'}); if(!res.ok) throw new Error('HTTP ' + res.status); const text = await res.text(); const d = parseVol2Vol(text); const a = analyze(d); render(d,a,new Date()); }catch(e){ showError((e && e.message ? e.message : 'โหลดข้อมูลไม่สำเร็จ') + (isAuto ? ' (auto retry)' : '')); }finally{ refreshBtn.disabled = false; refreshIcon.classList.remove('spin'); refreshLabel.textContent = 'Refresh'; } }
+
+// Render helpers
+function drawSkew(svgPath, xs, ys){
+// normalize to viewBox 0..160 x 0..56
+if(!xs || xs.length<2 || !ys || ys.length<2){ svgPath.setAttribute('d',''); return; }
+const minX = Math.min(...xs), maxX = Math.max(...xs);
+const minY = Math.min(...ys), maxY = Math.max(...ys);
+const w = 160, h = 56, pad=6;
+const norm = (x,xmin,xmax,low,high)=> low + ( (x-xmin)/(xmax-xmin || 1) )*(high-low);
+const pts = xs.map((x,i)=>{
+const nx = norm(x,minX,maxX,pad,w-pad);
+const ny = norm(ys[i],minY,maxY,h-pad,pad);
+return [nx,ny];
+});
+// build smooth path (simple polyline with cubic smoothing)
+let d = M ${pts[0][0]} ${pts[0][1]};
+for(let i=1;i<pts.length;i++){
+const [x,y]=pts[i];
+const [px,py]=pts[i-1];
+const cx1 = px + (x-px)/2;
+const cy1 = py;
+const cx2 = px + (x-px)/2;
+const cy2 = y;
+d += C ${cx1} ${cy1} ${cx2} ${cy2} ${x} ${y};
+} svgPath.setAttribute('d', d);
+}
+
+function renderAll(data, analysis){
+document.getElementById('emptyState').style.display='none';
+document.getElementById('dashboard').style.display='flex';
+document.getElementById('statusText').textContent = 'อัปเดตล่าสุด ' + (new Date()).toLocaleString('th-TH');
+document.getElementById('avatarTxt').textContent = data.ticker || 'GC';
+document.getElementById('tickerLine').textContent = ${data.ticker} · ${data.name} · ${data.dataType};
+document.getElementById('dateLine').textContent = new Date().toLocaleTimeString('th-TH');
+const badge = document.getElementById('patternBadge');
+const regime = analysis.regime;
+badge.textContent = ${analysis.bias} · ${analysis.conf} · ${analysis.strength};
+badge.className = 'badge ' + (analysis.bias==='SMIRK SELL'?'sell':analysis.bias==='SMIRK BUY'?'buy':'smirk');
+
+// metrics
+document.getElementById('statSpot').textContent = fmt(data.spot);
+document.getElementById('statBasis').textContent = 'Basis ' + fmt1(analysis.basis);
+document.getElementById('statVol').textContent = (data.vol).toFixed(2) + '%';
+document.getElementById('statVolTrend').textContent = 'Vol Δ ' + (data.volChg>=0?'+':'') + data.volChg.toFixed(2);
+document.getElementById('statMove').textContent = '±' + Math.round(analysis.dailyMove) + ' pts';
+document.getElementById('statFloorCeil').textContent = 'Floor ' + fmt(analysis.floor) + ' · Ceil ' + fmt(analysis.ceil);
+document.getElementById('statChg').textContent = (data.futChg>=0?'+':'') + fmt1(data.futChg);
+document.getElementById('statConf').textContent = analysis.conf + ' · Strength ' + analysis.strength;
+
+document.getElementById('oiTotals').textContent = Put OI ${fmt(data.putOITotal)} vs Call OI ${fmt(data.callOITotal)};
+document.getElementById('oiRatio').textContent = PCR ${ (data.putOITotal/data.callOITotal).toFixed(2) };
+
+// track marker
+const pct = clamp(((data.spot - analysis.lower)/(analysis.upper-analysis.lower))*100, 0, 100);
+document.getElementById('trackMarker').style.left = pct + '%';
+document.getElementById('lowerLabel').textContent = '▼ ' + fmt(Math.round(analysis.lower));
+document.getElementById('baseLabel').textContent = 'BASE ' + fmt(Math.round(analysis.base));
+document.getElementById('upperLabel').textContent = '▲ ' + fmt(Math.round(analysis.upper));
+
+// skew spark
+drawSkew(document.getElementById('skewPath'), analysis.skew.xs, analysis.skew.ys);
+document.getElementById('skewVal').textContent = analysis.smirkDelta.toFixed(4);
+document.getElementById('skewLabel').textContent = 'Skew Δ: ' + analysis.smirkDelta.toFixed(4);
+document.getElementById('skewRegime').textContent = analysis.regime;
+
+// clusters
+document.getElementById('putFloor').innerHTML = analysis.largestPut ? <div class="line"><strong>${analysis.largestPut.strike}</strong><span class="muted-small">Largest Put (OI ${analysis.largestPut.put})</span></div> : '—';
+document.getElementById('callRes').innerHTML = analysis.largestCall ? <div class="line"><strong>${analysis.largestCall.strike}</strong><span class="muted-small">Largest Call (OI ${analysis.largestCall.call})</span></div> : '—';
+
+// trade plan render
+document.getElementById('planSub').textContent = ${data.ticker} · ${data.name};
+document.getElementById('planBias').textContent = analysis.bias;
+
+const zoneWrap = document.getElementById('zoneWrap');
+zoneWrap.innerHTML = `<div class="box"><div class="boxhd">Trade Zone (${analysis.bias})</div>
+<div class="line"><strong style="font-size:20px">${fmt(analysis.zoneLow)} – ${fmt(analysis.zoneHigh)}</strong></div>
+<div class="muted-small" style="margin-top:8px">Entry ${fmt(analysis.entry)} · Stop ${fmt(analysis.stop)} · Invalidation ${fmt(analysis.invalid)}</div></div>`;
+
+const targets = document.getElementById('targetsWrap');
+targets.innerHTML = `<div class="t"><div class="lab">Entry</div><div class="val">${fmt(analysis.entry)}</div></div>
+<div class="t"><div class="lab">Stop</div><div class="val">${fmt(analysis.stop)}</div></div>
+<div class="t"><div class="lab">Swing</div><div class="val">${fmt(analysis.swing)}</div></div>
+<div class="t"><div class="lab">T1</div><div class="val">${fmt(analysis.t1)}</div></div>
+<div class="t"><div class="lab">T2</div><div class="val">${fmt(analysis.t2)}</div></div>
+<div class="t"><div class="lab">Basis</div><div class="val">${fmt1(analysis.basis)}</div></div>`;
+
+// reasons
+const rl = document.getElementById('reasonsList'); rl.innerHTML=''; if(analysis.reasons.length===0) rl.innerHTML = '<li>— ไม่มีสัญญาณเด่น</li>'; else analysis.reasons.forEach(r=>{ const li = document.createElement('li'); const dot = document.createElement('span'); dot.style.width='8px'; dot.style.height='8px'; dot.style.borderRadius='8px'; dot.style.display='inline-block'; dot.style.marginTop='6px'; dot.style.marginRight='8px'; dot.style.background = r==='sell'? 'var(--sell)' : r==='buy'? 'var(--buy)' : 'var(--amber)'; li.appendChild(dot); li.appendChild(document.createTextNode(r)); rl.appendChild(li); });
+
+// AI summary
+const ai = document.getElementById('aiSummary');
+ai.innerHTML = `<div style="font-weight:800">${analysis.bias} · ${analysis.conf}</div>
+<div class="muted-small" style="margin-top:6px">Skew regime: ${analysis.regime}. Smirk Δ = ${analysis.smirkDelta.toFixed(4)} (positive → put expensive). PCR ${(data.putOITotal/data.callOITotal).toFixed(2)}. Suggested zone: ${fmt(analysis.zoneLow)}–${fmt(analysis.zoneHigh)}, Entry ${fmt(analysis.entry)}, Stop ${fmt(analysis.stop)}, T1 ${fmt(analysis.t1)}, T2 ${fmt(analysis.t2)}.</div>`;
+}
+
+// fetch + orchestrate
+async function fetchAndRender(isAuto){
+document.getElementById('refreshBtn').disabled = true;
+document.getElementById('refreshIcon').classList.add('spin');
+document.getElementById('refreshLabel').textContent = 'Loading';
+try{
+const res = await fetch(RAW_URL + '?t=' + Date.now(), { cache: 'no-store' });
+if(!res.ok) throw new Error('HTTP ' + res.status);
+const text = await res.text();
+const data = parseVol2Vol(text);
+const analysis = analyze(data);
+renderAll(data, analysis);
+document.getElementById('errorBox').style.display='none';
+}catch(e){
+document.getElementById('errorBox').style.display='block';
+document.getElementById('errorBox').textContent = 'Error: ' + (e && e.message ? e.message : 'โหลดไม่สำเร็จ');
+}finally{
+document.getElementById('refreshBtn').disabled = false;
+document.getElementById('refreshIcon').classList.remove('spin');
+document.getElementById('refreshLabel').textContent = 'Refresh';
+} }
+document.getElementById('refreshBtn').addEventListener('click', ()=>{ fetchAndRender(false); startAuto(); });
+let autoTimer = null;
 function startAuto(){ if(autoTimer) clearInterval(autoTimer); autoTimer = setInterval(()=>fetchAndRender(true), AUTO_REFRESH_MS); }
-refreshBtn.addEventListener('click', ()=>{ fetchAndRender(false); startAuto(); });
+
 fetchAndRender(false); startAuto();
+
 </script>
 </body>
 </html>
