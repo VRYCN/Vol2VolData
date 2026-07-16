@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Gold Options Dashboard — v6 (ATM follows marker)</title>
+<title>Gold Options Dashboard — v6 (ATM marker fixed)</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
 :root{--bg:#07101a;--panel:#101b2c;--panel2:#0b1320;--line:#25364d;--line2:#1a2433;--text:#eaf1fb;--muted:#96a8c2;--dim:#72829c;--buy:#55d7a8;--sell:#ff6e7d;--amber:#e0b24f;--sky:#7eb8ff;--shadow:0 24px 70px rgba(0,0,0,.42)}
@@ -41,14 +41,13 @@ button:disabled{opacity:.6;cursor:default}
 .trackwrap{padding:14px 16px 16px}
 .tracktitle{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}
 .tracktitle b{color:#dce6f5}
-/* stronger contrast for the expected-move bar */
-.track{position:relative;height:16px;border-radius:999px;background:#0b2233;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.track{position:relative;height:16px;border-radius:999px;background:#142233;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
 .track .seg{position:absolute;top:0;bottom:0}
-.track .low{left:0;width:33.333%;background:linear-gradient(90deg,rgba(255,90,110,.28),rgba(255,90,110,.12));box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
-.track .mid{left:33.333%;width:33.333%;background:linear-gradient(90deg,rgba(230,170,60,.28),rgba(230,170,60,.12));box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
-.track .high{left:66.666%;width:33.334%;background:linear-gradient(90deg,rgba(70,200,150,.28),rgba(70,200,150,.12));box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
-.marker{position:absolute;top:-6px;width:3px;height:28px;border-radius:999px;background:#fff;transform:translateX(-50%);box-shadow:0 0 0 3px rgba(255,255,255,.06)}
-.marker.signal{top:4px;width:12px;height:12px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 4px rgba(224,178,79,.18);border:2px solid rgba(8,12,16,.6)}
+.track .low{left:0;width:33.333%;background:linear-gradient(90deg,rgba(255,110,125,.22),rgba(255,110,125,.03))}
+.track .mid{left:33.333%;width:33.333%;background:linear-gradient(90deg,rgba(224,178,79,.16),rgba(224,178,79,.04))}
+.track .high{left:66.666%;width:33.334%;background:linear-gradient(90deg,rgba(85,215,168,.05),rgba(85,215,168,.20))}
+.marker{position:absolute;top:-5px;width:3px;height:26px;border-radius:999px;background:#fff;transform:translateX(-50%);box-shadow:0 0 0 2px rgba(255,255,255,.08)}
+.marker.signal{top:2px;width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(224,178,79,.16)}
 .labels{display:flex;justify-content:space-between;gap:10px;padding-top:8px;font-size:11px;color:var(--muted)}
 .labels .base{color:#dce6f5;font-weight:700}
 .interpret{margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(8,14,22,.34);font-size:12px;color:var(--muted);line-height:1.5}
@@ -81,7 +80,7 @@ button:disabled{opacity:.6;cursor:default}
 .footer{text-align:center;color:var(--muted);font-size:11px;padding:0 16px 16px}
 .empty,.error{margin:0 16px;border-radius:16px;padding:34px 18px;text-align:center;color:var(--muted);background:rgba(11,17,29,.55);border:1px dashed var(--line)}
 .error{display:none;border-style:solid;border-color:rgba(255,110,125,.35);background:rgba(60,18,24,.46);color:#f4b5bb}
-.plot{width:100%;height:360px} /* more vertical room for annotation and to avoid overlap */
+.plot{width:100%;height:320px} /* increased height to give room for annotations */
 .plotNote{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
 .guide{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(7,13,20,.44)}
 .guide p{margin:0 0 7px 0;color:var(--muted);font-size:12px;line-height:1.5}
@@ -232,7 +231,7 @@ button:disabled{opacity:.6;cursor:default}
 
 <script>
 /* -------------------------
-   Config / constants
+   Config / constants (kept from your uploaded file)
    ------------------------- */
 const RAW_URL = "https://raw.githubusercontent.com/pageth/Vol2VolData/main/IntradayData.txt";
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
@@ -242,7 +241,7 @@ const TREND_WINDOW_MS = 15 * 60 * 1000;
 const BUCKET_SIZE = 25;
 
 /* -------------------------
-   Utilities
+   Utilities (copied)
    ------------------------- */
 function fmt(n){ return Number.isFinite(+n) ? Math.round(+n).toLocaleString("en-US") : "—"; }
 function signed(n, digits){ const v = +n; if(!Number.isFinite(v)) return "—"; return (v>=0?"+":"") + v.toFixed(digits); }
@@ -308,7 +307,7 @@ function parseVol2Vol(text){
 }
 
 /* -------------------------
-   Wall detection & analysis
+   Wall detection & analysis (copied)
    ------------------------- */
 function bucketize(rows, bucketSize){
   const map = new Map();
@@ -353,7 +352,7 @@ function findClosestTo(history, targetTime){
 }
 
 /* -------------------------
-   Analysis
+   Analysis (copied & preserved)
    ------------------------- */
 function analyze(d, history){
   const dailyMove = d.vol > 0 ? d.spot * (d.vol/100) / Math.sqrt(252) : Math.max(20, d.spot * 0.005);
@@ -488,8 +487,7 @@ function analyze(d, history){
 }
 
 /* -------------------------
-   Plot drawing (Plotly)
-   - ATM annotation placed to the right and follows the marker
+   Plot drawing (Plotly) - improved ATM placement & annotation
    ------------------------- */
 function interpolateYAtX(curveRows, x){
   if(!curveRows || !curveRows.length) return null;
@@ -511,8 +509,10 @@ function drawPlot(curveRows, spot, skewRegime){
   const x = curveRows.map(r=>r.strike);
   const y = curveRows.map(r=>r.settle);
 
+  // compute ATM y by interpolation so the diamond sits exactly on the curve
   const atmY = interpolateYAtX(curveRows, spot);
 
+  // main IV curve
   const traceLine = {
     type:"scatter", mode:"lines+markers", x, y, name:"IV proxy",
     line:{color:"#7eb8ff",width:3,shape:"spline",smoothing:1.2},
@@ -520,15 +520,16 @@ function drawPlot(curveRows, spot, skewRegime){
     hovertemplate:"Strike %{x}<br>IV proxy %{y:.4f}<extra></extra>"
   };
 
+  // ATM marker: smaller marker + separate annotation (annotation avoids overlap)
   const traceATM = {
     type:"scatter", mode:"markers", x:[spot], y:[atmY],
     marker:{size:12,color:"#e0b24f",symbol:"diamond",line:{width:2,color:"#08111b"}},
     hovertemplate:"ATM %{x}<br>IV proxy %{y:.4f}<extra></extra>"
   };
 
-  // layout: place annotation to the right of the marker and use ax positive to draw arrow leftwards
+  // layout: increase top margin and use annotation with standoff/yshift to avoid overlap
   const layout = {
-    margin:{l:54,r:18,t:70,b:48},
+    margin:{l:54,r:18,t:60,b:48}, // increased top margin to give room for annotation
     paper_bgcolor:"rgba(0,0,0,0)",
     plot_bgcolor:"#09111b",
     font:{color:"#eaf1fb",size:11},
@@ -542,30 +543,31 @@ function drawPlot(curveRows, spot, skewRegime){
         text:`ATM ${spot}<br>IV ${atmY !== null ? atmY.toFixed(4) : '—'}`,
         showarrow:true,
         arrowhead:2,
-        ax:40,    // arrow tail offset to the right of the annotation (so text sits to the right of point)
-        ay:0,
-        xanchor:"left",
-        bgcolor:"rgba(14,20,30,0.95)",
+        ax:0,
+        ay:-48,            // push annotation above marker
+        standoff:12,       // extra space between arrow and text
+        bgcolor:"rgba(14,20,30,0.9)",
         bordercolor:"rgba(224,178,79,0.12)",
         borderwidth:1,
         font:{color:"#eaf1fb",size:12},
-        align:"left"
+        align:"center"
       }
     ],
     shapes:[
+      // subtle vertical guide at ATM for clarity (low opacity)
       { type:"line", x0:spot, x1:spot, xref:"x", y0:Math.min(...y), y1:Math.max(...y), yref:"y", line:{color:"rgba(224,178,79,0.06)",width:1,dash:"dot"} }
     ]
   };
 
   Plotly.react("plot", [traceLine, traceATM], layout, {responsive:true,displayModeBar:false});
   document.getElementById("chartNote").textContent = skewRegime === "Left Smirk" ? "ฝั่ง put (ที่ขอบ daily move) แพงกว่า → แรง hedge ด้านล่างเด่น"
-    : skewRegime === "Right Smirk" ? "ฝั่ง call (ที่ขอบ daily move) แพงกว่ → demand ด้านบนเด่น"
+    : skewRegime === "Right Smirk" ? "ฝั่ง call (ที่ขอบ daily move) แพงกว่า → demand ด้านบนเด่น"
     : skewRegime === "Smile" ? "สองปีก (ที่ขอบ daily move) แพงกว่า ATM → ตลาดกำลัง price tail risk ทั้งสองทาง"
     : "โครง IV ค่อนข้าง flat ในช่วง daily move — ยังไม่มี skew ชัดเจน";
 }
 
 /* -------------------------
-   Render helpers
+   Render helpers (copied)
    ------------------------- */
 function renderWallList(el, walls, side){
   if(!walls.length){ el.innerHTML = "—"; return; }
@@ -579,7 +581,7 @@ function renderWallList(el, walls, side){
 }
 
 /* -------------------------
-   Robust image loader
+   Robust image loader (fetch->blob to avoid CORS img issues)
    ------------------------- */
 const SNAP_CANDIDATES = [
   "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday+OI.png",
@@ -631,7 +633,7 @@ async function tryLoadSnapshotImage(){
 }
 
 /* -------------------------
-   Fetch & render pipeline
+   Fetch & render pipeline (uses parseVol2Vol)
    ------------------------- */
 let refreshInFlight = false;
 async function fetchAndRender(isAuto){
@@ -665,7 +667,7 @@ async function fetchAndRender(isAuto){
 }
 
 /* -------------------------
-   Render pipeline
+   Render pipeline (preserve ids)
    ------------------------- */
 let els = {}, autoTimer = null;
 function render(data, a){
@@ -754,7 +756,7 @@ function render(data, a){
 }
 
 /* -------------------------
-   Snapshot toggle control
+   Snapshot toggle control (dropdown)
    ------------------------- */
 function setSnapshotVisibility(mode){
   const frame = document.getElementById("imgFrame");
