@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Gold Options Dashboard — v6 (snapshot toggle)</title>
+<title>Gold Options Dashboard — v6 (ATM marker fixed)</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
 :root{--bg:#07101a;--panel:#101b2c;--panel2:#0b1320;--line:#25364d;--line2:#1a2433;--text:#eaf1fb;--muted:#96a8c2;--dim:#72829c;--buy:#55d7a8;--sell:#ff6e7d;--amber:#e0b24f;--sky:#7eb8ff;--shadow:0 24px 70px rgba(0,0,0,.42)}
@@ -442,7 +442,7 @@ function analyze(d, history){
       reasons.push(["neutral", `Skew ${trend.skewDelta>0 ? "เอียงซ้ายมากขึ้น" : "เอียงขวามากขึ้น"} เทียบ ${trend.minutesAgo} นาทีก่อน (Δ ${signed(trend.skewDelta,4)})`]);
     }
   } else {
-    reasons.push(["neutral", "ยังเก็บข้อมูลไม่ครบ ~15 นาที ในเบราว์เซอร์นี้ — ความแม่นยำของ Intraday Trend จะดีขึ้นเมื่อเปิดทิ้งไว้นานขึ้น"]);
+    reasons.push(["neutral", "ยังเก็บข้อมูลไม่ครบ ~15 นาที ในเบราว์เซ์ร์นี้ — ความแม่นยำของ Intraday Trend จะดีขึ้นเมื่อเปิดทิ้งไว้นานขึ้น"]);
   }
 
   const diff = sell - buy;
@@ -487,20 +487,83 @@ function analyze(d, history){
 }
 
 /* -------------------------
-   Plot drawing (Plotly) - preserved
+   Plot drawing (Plotly) - improved ATM placement & annotation
    ------------------------- */
+function interpolateYAtX(curveRows, x){
+  // curveRows sorted by strike ascending
+  if(!curveRows || !curveRows.length) return null;
+  // exact match
+  for(const r of curveRows) if(r.strike === x) return r.settle;
+  // find neighbors
+  let left = null, right = null;
+  for(let i=0;i<curveRows.length;i++){
+    if(curveRows[i].strike < x) left = curveRows[i];
+    if(curveRows[i].strike > x){ right = curveRows[i]; break; }
+  }
+  if(!left && !right) return curveRows[0].settle;
+  if(!left) return right.settle;
+  if(!right) return left.settle;
+  // linear interpolation
+  const t = (x - left.strike) / (right.strike - left.strike);
+  return left.settle + t * (right.settle - left.settle);
+}
+
 function drawPlot(curveRows, spot, skewRegime){
   if(!window.Plotly || !curveRows.length) return;
   const x = curveRows.map(r=>r.strike);
   const y = curveRows.map(r=>r.settle);
-  const atmY = y.reduce((a,b)=>a+b,0)/y.length;
-  Plotly.react("plot", [
-    {type:"scatter",mode:"lines+markers",x,y,name:"IV proxy",line:{color:"#7eb8ff",width:3,shape:"spline"},marker:{size:7,color:"#a9d0ff"},hovertemplate:"Strike %{x}<br>IV proxy %{y:.4f}<extra></extra>"},
-    {type:"scatter",mode:"markers",x:[spot],y:[atmY],name:"ATM",marker:{size:11,color:"#e0b24f",symbol:"diamond"},hovertemplate:"ATM ~%{x}<extra></extra>"}
-  ],{margin:{l:44,r:14,t:14,b:38},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"#09111b",font:{color:"#eaf1fb",size:11},
+
+  // compute ATM y by interpolation so the diamond sits exactly on the curve
+  const atmY = interpolateYAtX(curveRows, spot);
+
+  // smoother line + subtle markers
+  const traceLine = {
+    type:"scatter", mode:"lines+markers", x, y, name:"IV proxy",
+    line:{color:"#7eb8ff",width:3,shape:"spline",smoothing:1.2},
+    marker:{size:6,color:"#a9d0ff",line:{width:0.5,color:"rgba(255,255,255,0.08)"}},
+    hovertemplate:"Strike %{x}<br>IV proxy %{y:.4f}<extra></extra>"
+  };
+
+  // ATM marker placed exactly on the curve (interpolated)
+  const traceATM = {
+    type:"scatter", mode:"markers+text", x:[spot], y:[atmY],
+    marker:{size:14,color:"#e0b24f",symbol:"diamond",line:{width:2,color:"#08111b"}},
+    text:[`ATM ${spot}`],
+    textposition:"top center",
+    textfont:{color:"#eaf1fb",size:11,weight:700},
+    hovertemplate:"ATM %{x}<br>IV proxy %{y:.4f}<extra></extra>"
+  };
+
+  // layout with annotation box to explain ATM marker
+  const layout = {
+    margin:{l:44,r:14,t:18,b:38},
+    paper_bgcolor:"rgba(0,0,0,0)",
+    plot_bgcolor:"#09111b",
+    font:{color:"#eaf1fb",size:11},
     xaxis:{title:{text:"Strike",font:{color:"#96a8c2"}},gridcolor:"rgba(255,255,255,.07)",zeroline:false},
     yaxis:{title:{text:"IV proxy",font:{color:"#96a8c2"}},gridcolor:"rgba(255,255,255,.07)",zeroline:false},
-    showlegend:false},{responsive:true,displayModeBar:false});
+    showlegend:false,
+    annotations:[
+      {
+        x: spot, y: atmY,
+        xref:"x", yref:"y",
+        text:`ATM ≈ ${spot}<br>IV ${atmY !== null ? atmY.toFixed(4) : '—'}`,
+        showarrow:true,
+        arrowhead:2,
+        ax:0,
+        ay:-36,
+        bgcolor:"rgba(14,20,30,0.8)",
+        bordercolor:"rgba(224,178,79,0.12)",
+        font:{color:"#eaf1fb",size:11}
+      }
+    ],
+    shapes:[
+      // subtle vertical guide at ATM for clarity
+      { type:"line", x0:spot, x1:spot, xref:"x", y0:Math.min(...y), y1:Math.max(...y), yref:"y", line:{color:"rgba(224,178,79,0.06)",width:1,dash:"dot"} }
+    ]
+  };
+
+  Plotly.react("plot", [traceLine, traceATM], layout, {responsive:true,displayModeBar:false});
   document.getElementById("chartNote").textContent = skewRegime === "Left Smirk" ? "ฝั่ง put (ที่ขอบ daily move) แพงกว่า → แรง hedge ด้านล่างเด่น"
     : skewRegime === "Right Smirk" ? "ฝั่ง call (ที่ขอบ daily move) แพงกว่า → demand ด้านบนเด่น"
     : skewRegime === "Smile" ? "สองปีก (ที่ขอบ daily move) แพงกว่า ATM → ตลาดกำลัง price tail risk ทั้งสองทาง"
@@ -561,7 +624,6 @@ async function tryLoadSnapshotImage(){
     }
   }
 
-  // fallback to direct src attempt then inline SVG message
   const fallbackDirect = "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday+OI.png";
   imgEl.crossOrigin = "anonymous";
   imgEl.onerror = function(){
@@ -699,7 +761,6 @@ function render(data, a){
 
 /* -------------------------
    Snapshot toggle control (dropdown)
-   - preserves DOM ids; toggles .collapsed on #imgFrame
    ------------------------- */
 function setSnapshotVisibility(mode){
   const frame = document.getElementById("imgFrame");
@@ -712,18 +773,15 @@ function setSnapshotVisibility(mode){
     frame.classList.remove("collapsed");
     select.value = "show";
   }
-  // store preference in sessionStorage so reload keeps user's choice during session
   try{ sessionStorage.setItem("vol2vol_snap_visible", mode); }catch(e){}
 }
 
 document.addEventListener("DOMContentLoaded", ()=>{
-  // wire up toggle
   const snapToggle = document.getElementById("snapToggle");
   if(snapToggle){
     snapToggle.addEventListener("change", (e)=>{
       setSnapshotVisibility(e.target.value);
     });
-    // restore preference
     try{
       const pref = sessionStorage.getItem("vol2vol_snap_visible");
       if(pref === "hide") setSnapshotVisibility("hide");
@@ -763,7 +821,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
   els.refreshBtn.addEventListener("click", () => { fetchAndRender(false); startAutoRefresh(); });
 
-  // initial attempts: load image first (non-blocking) and then fetch data
   tryLoadSnapshotImage();
   fetchAndRender(false);
   startAutoRefresh();
