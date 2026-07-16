@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Gold Options Dashboard — v6 (visual polish)</title>
+<title>Gold Options Dashboard — v6 (refined track bar)</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
 :root{
@@ -45,16 +45,63 @@ button:disabled{opacity:.6;cursor:default}
 .trackwrap{padding:14px 16px 16px}
 .tracktitle{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}
 .tracktitle b{color:#dce6f5}
-/* stronger, higher-contrast expected-move bar */
-.track{position:relative;height:18px;border-radius:999px;background:linear-gradient(90deg,#071a28,#0b2b3b);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+
+/* Redesigned expected-move bar to match example:
+   - left = green (downside), center = BASE label, right = red (upside)
+   - pointer (triangle) indicates current price position; no yellow circle
+*/
+.track{position:relative;height:22px;border-radius:999px;background:linear-gradient(90deg,#071a28,#071a28);overflow:hidden;border:1px solid rgba(255,255,255,.06)}
 .track .seg{position:absolute;top:0;bottom:0}
-.track .low{left:0;width:33.333%;background:linear-gradient(90deg,rgba(255,80,100,.36),rgba(255,60,80,.18));box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
-.track .mid{left:33.333%;width:33.333%;background:linear-gradient(90deg,rgba(230,160,50,.36),rgba(200,140,40,.18));box-shadow:inset 0 2px 6px rgba(0,0,0,.28)}
-.track .high{left:66.666%;width:33.334%;background:linear-gradient(90deg,rgba(60,200,150,.36),rgba(40,180,140,.18));box-shadow:inset 0 2px 6px rgba(0,0,0,.28)}
-.marker{position:absolute;top:-7px;width:4px;height:32px;border-radius:999px;background:#fff;transform:translateX(-50%);box-shadow:0 0 0 4px rgba(255,255,255,.06)}
-.marker.signal{top:3px;width:14px;height:14px;border-radius:50%;background:linear-gradient(180deg,var(--gold),var(--gold-dark));box-shadow:0 6px 18px rgba(255,191,71,.18),0 0 0 4px rgba(179,122,18,.08);border:2px solid rgba(8,12,16,.6)}
-.labels{display:flex;justify-content:space-between;gap:10px;padding-top:8px;font-size:11px;color:var(--muted)}
-.labels .base{color:#dce6f5;font-weight:700}
+.track .low{left:0;width:50%;background:linear-gradient(90deg,#0f4d2f,#1aa06a);box-shadow:inset 0 2px 8px rgba(0,0,0,.35)}
+.track .high{right:0;width:50%;background:linear-gradient(90deg,#b33a3a,#ff6b6b);box-shadow:inset 0 2px 8px rgba(0,0,0,.35)}
+/* hide the old mid segment; we use left/right halves to match the green/red split */
+.track .mid{display:none}
+
+/* pointer triangle (replaces yellow circle) */
+.track .pointer{
+  position:absolute;
+  top:-10px;
+  left:50%;
+  transform:translateX(-50%);
+  width:0;height:0;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:12px solid var(--gold);
+  filter:drop-shadow(0 6px 12px rgba(179,122,18,.12));
+  transition:left .28s ease;
+  z-index:4;
+}
+
+/* subtle vertical guide line under pointer */
+.track .pointer-line{
+  position:absolute;
+  top:6px;
+  left:50%;
+  transform:translateX(-50%);
+  width:2px;
+  height:10px;
+  background:linear-gradient(180deg,rgba(255,191,71,0.9),rgba(255,191,71,0.2));
+  border-radius:2px;
+  transition:left .28s ease;
+  z-index:3;
+}
+
+/* labels above/below the bar */
+.labels{display:flex;justify-content:space-between;gap:10px;padding-top:10px;font-size:12px;color:var(--muted);align-items:center}
+.labels .left, .labels .center, .labels .right{display:flex;flex-direction:column;align-items:center;min-width:120px}
+.labels .left{align-items:flex-start}
+.labels .right{align-items:flex-end}
+.labels .left .pct{color:#9ff0c9;font-weight:700}
+.labels .left .val{color:#bfffe0;font-weight:900}
+.labels .center .base{color:var(--gold);font-weight:900}
+.labels .right .val{color:#ffd1d1;font-weight:900}
+.labels .arrow{font-size:12px;opacity:0.9}
+
+/* make the base label more prominent and centered */
+.labels .center{flex:1;display:flex;flex-direction:column;align-items:center}
+.labels .center .base-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* keep accessibility and spacing */
 .interpret{margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(8,14,22,.34);font-size:12px;color:var(--muted);line-height:1.5}
 .content{display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:10px;padding:0 16px 16px}
 .box{background:linear-gradient(180deg,rgba(8,14,22,.28),rgba(6,10,16,.12));border-radius:14px;padding:11px;border:1px solid var(--line2)}
@@ -85,7 +132,7 @@ button:disabled{opacity:.6;cursor:default}
 .footer{text-align:center;color:var(--muted);font-size:11px;padding:0 16px 16px}
 .empty,.error{margin:0 16px;border-radius:16px;padding:34px 18px;text-align:center;color:var(--muted);background:rgba(11,17,29,.55);border:1px dashed var(--line)}
 .error{display:none;border-style:solid;border-color:rgba(255,110,125,.35);background:rgba(60,18,24,.46);color:#f4b5bb}
-.plot{width:100%;height:380px} /* more vertical room for annotation and to avoid overlap */
+.plot{width:100%;height:380px}
 .plotNote{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
 .guide{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(7,13,20,.44)}
 .guide p{margin:0 0 7px 0;color:var(--muted);font-size:12px;line-height:1.5}
@@ -146,12 +193,33 @@ button:disabled{opacity:.6;cursor:default}
 
       <div class="trackwrap">
         <div class="tracktitle"><span><b>Daily Expected Move</b></span><span id="signalStrength">Signal Strength —</span></div>
+
         <div class="track" aria-hidden="true">
-          <div class="seg low"></div><div class="seg mid"></div><div class="seg high"></div>
-          <div class="marker" id="trackMarker" style="left:50%"></div>
-          <div class="marker signal" id="signalMarker" style="left:50%"></div>
+          <div class="seg low"></div>
+          <div class="seg high"></div>
+
+          <!-- pointer triangle (follows left/right position) -->
+          <div class="pointer" id="trackPointer" style="left:50%"></div>
+          <div class="pointer-line" id="pointerLine" style="left:50%"></div>
         </div>
-        <div class="labels"><span id="lowerLabel">—</span><span class="base" id="baseLabel">—</span><span id="upperLabel">—</span></div>
+
+        <div class="labels">
+          <div class="left">
+            <div class="pct" id="leftPct">—</div>
+            <div class="val"><span class="arrow">▼</span> <span id="lowerLabel">—</span></div>
+          </div>
+
+          <div class="center">
+            <div class="base" id="baseLabel">—</div>
+            <div class="base-sub" id="baseSub">BASE</div>
+          </div>
+
+          <div class="right">
+            <div class="val"><span id="upperLabel">—</span> <span class="arrow">▲</span></div>
+            <div class="pct" id="rightPct" style="color:#ffb3b3">—</div>
+          </div>
+        </div>
+
         <div id="moveInterpret" class="interpret">—</div>
       </div>
 
@@ -493,8 +561,7 @@ function analyze(d, history){
 
 /* -------------------------
    Plot drawing (Plotly)
-   - ATM annotation placed to the right and follows the marker
-   - richer gold marker + clearer annotation styling
+   - keep ATM annotation behavior from previous version
    ------------------------- */
 function interpolateYAtX(curveRows, x){
   if(!curveRows || !curveRows.length) return null;
@@ -527,11 +594,10 @@ function drawPlot(curveRows, spot, skewRegime){
 
   const traceATM = {
     type:"scatter", mode:"markers", x:[spot], y:[atmY],
-    marker:{size:14,color:"#ffbf47",symbol:"diamond",line:{width:2,color:"#6b3f07"}},
+    marker:{size:12,color:"#ffbf47",symbol:"diamond",line:{width:2,color:"#6b3f07"}},
     hovertemplate:"ATM %{x}<br>IV proxy %{y:.4f}<extra></extra>"
   };
 
-  // layout: annotation to the right, with stronger contrast and subtle gold accent
   const layout = {
     margin:{l:54,r:18,t:80,b:48},
     paper_bgcolor:"rgba(0,0,0,0)",
@@ -547,7 +613,7 @@ function drawPlot(curveRows, spot, skewRegime){
         text:`ATM ${spot}<br><span style="color:${'#ffdf9b'}">IV ${atmY !== null ? atmY.toFixed(4) : '—'}</span>`,
         showarrow:true,
         arrowhead:2,
-        ax:48,    // push annotation to the right of the point
+        ax:48,
         ay:0,
         xanchor:"left",
         bgcolor:"rgba(18,24,30,0.98)",
@@ -713,11 +779,28 @@ function render(data, a){
   els.oiTotals.textContent = `Put OI ${fmt(data.putOITotal)} vs Call OI ${fmt(data.callOITotal)}`;
   els.oiRatio.textContent = `PCR ${a.pcr.toFixed(2)}`;
   els.signalStrength.textContent = `Signal Strength ${a.strength}/100`;
-  els.trackMarker.style.left = a.pricePos + "%";
-  els.signalMarker.style.left = a.strengthPos + "%";
-  els.lowerLabel.textContent = `▼ ${fmt(a.lower)}`;
-  els.baseLabel.textContent = `BASE ${fmt(a.base)}`;
-  els.upperLabel.textContent = `▲ ${fmt(a.upper)}`;
+
+  // update track pointer position (left %)
+  const leftPct = a.pricePos; // 0..100
+  const pointerEl = document.getElementById("trackPointer");
+  const pointerLine = document.getElementById("pointerLine");
+  if(pointerEl && pointerLine){
+    pointerEl.style.left = leftPct + "%";
+    pointerLine.style.left = leftPct + "%";
+  }
+
+  // left/right labels: show percent distance from base and strike values
+  document.getElementById("lowerLabel").textContent = fmt(a.lower);
+  document.getElementById("upperLabel").textContent = fmt(a.upper);
+  document.getElementById("baseLabel").textContent = fmt(a.base);
+  document.getElementById("baseSub").textContent = `BASE`;
+
+  // compute simple percent moves for display (rounded)
+  const downPct = a.base ? Math.round(((a.base - a.lower)/a.base)*100*10)/10 : "—";
+  const upPct = a.base ? Math.round(((a.upper - a.base)/a.base)*100*10)/10 : "—";
+  document.getElementById("leftPct").textContent = (downPct !== "—") ? `${downPct}%` : "—";
+  document.getElementById("rightPct").textContent = (upPct !== "—") ? `${upPct}%` : "—";
+
   const biasText = a.side === "WAIT" ? "WAIT / NO EDGE" : `${a.side} bias`;
   els.moveInterpret.innerHTML = `<b>${a.edgeLabel}</b> · ${a.strength>=80?'Strong edge':a.strength>=66?'Moderate edge':'Weak edge'} · ${biasText}.`;
 
