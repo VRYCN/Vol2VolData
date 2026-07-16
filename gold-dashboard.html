@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gold Options Dashboard — V5.4.3</title>
+<title>Gold Options Dashboard — V5.4.4</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
 :root{--bg:#07101a;--panel:#101b2c;--panel2:#0b1320;--line:#25364d;--line2:#1a2433;--text:#eaf1fb;--muted:#96a8c2;--dim:#72829c;--buy:#55d7a8;--sell:#ff6e7d;--amber:#e0b24f;--sky:#7eb8ff;--shadow:0 24px 70px rgba(0,0,0,.42)}
@@ -109,7 +109,7 @@ button:disabled{opacity:.6;cursor:default}
 <div class="wrap">
   <div class="top">
     <div>
-      <h1>Gold Options Dashboard — V5.4.3</h1>
+      <h1>Gold Options Dashboard — V5.4.4</h1>
       <div class="sub" id="statusLine"><span class="dot" id="statusDot"></span><span id="statusText">กำลังดึงข้อมูล...</span></div>
     </div>
     <button id="refreshBtn"><span id="refreshIcon">⟳</span><span id="refreshLabel">Refresh</span></button>
@@ -281,6 +281,33 @@ function buildCurve(rows, spot){
   return { rows: sample.length >= 3 ? sample : sorted.slice(Math.max(0, sorted.length - 7)) };
 }
 
+function pcrBias(pcr, pricePos){
+  if(pcr <= 0.88) return { bias:"Bullish", reason:"call OI เด่นกว่า put OI จึงสะท้อน sentiment ฝั่งขึ้น", color:"buy" };
+  if(pcr >= 1.12) return { bias:"Bearish", reason:"put OI เด่นกว่า call OI จึงสะท้อน sentiment ฝั่งลง/hedge หนัก", color:"sell" };
+  if(pricePos >= 60 && pcr < 1.0) return { bias:"Bullish", reason:"ราคายืนบนกรอบแต่ PCR ยังต่ำ แปลว่าแรง call support ยังเด่น", color:"buy" };
+  if(pricePos <= 40 && pcr > 1.0) return { bias:"Bearish", reason:"ราคายืนล่างกรอบแต่ PCR ยังสูง แปลว่า put hedging ยังหนา", color:"sell" };
+  return { bias:"Neutral", reason:"PCR ใกล้สมดุลและยังไม่สุดโต่ง จึงยังไม่ให้ bias เด่น", color:"neutral" };
+}
+
+function strategyFit(a){
+  if(a.side === "SELL" && a.pcr < 0.95 && a.pricePos > 55){
+    return { name:"Covered Call / Bear Call Spread", desc:"เหมาะเมื่อราคาใกล้ upper edge และ call wall หนา", bullets:["ใช้เมื่อคาดว่าราคาจะติด resistance","เหมาะกับ short premium","IV สูงแต่เริ่มไม่ขยายเพิ่ม"], color:"sell" };
+  }
+  if(a.side === "BUY" && a.pcr > 1.05 && a.pricePos < 45){
+    return { name:"Protective Put / Bull Put Spread", desc:"เหมาะเมื่อ put wall เด่นและราคายังอยู่ฝั่งล่าง", bullets:["ใช้เมื่ออยากจำกัด downside","เหมาะกับแนวรับใหญ่","รับ pullback แล้วลุ้นเด้ง"], color:"buy" };
+  }
+  if(a.strength >= 80 && a.pricePos >= 35 && a.pricePos <= 65 && a.side === "WAIT"){
+    return { name:"Short Straddle / Short Strangle", desc:"กลางกรอบและ IV ยังมี premium ให้ขาย", bullets:["ใช้เมื่อเชื่อว่าราคาจะ stay inside range","ต้องระวัง breakout","เหมาะกับ short vol"], color:"neutral" };
+  }
+  if(a.strength >= 75 && (a.pricePos <= 25 || a.pricePos >= 75) && Math.abs(a.volChg) > 0.10){
+    return { name:"Long Straddle / Long Strangle", desc:"ราคาเริ่มอยู่ edge และ vol เริ่มขยับ", bullets:["ใช้เมื่อคาดว่า range จะขยาย","ยอมจ่าย premium เพื่อ convexity","เหมาะกับ breakout"], color:"neutral" };
+  }
+  if(a.bias === "Neutral" && a.pricePos > 35 && a.pricePos < 65){
+    return { name:"Wait / No Edge", desc:"ข้อมูลยังไม่ชัดสำหรับ directional options play", bullets:["ยังอยู่กลาง expected move","รอให้ wall หรือ skew ชัดขึ้น","ไม่รีบจ่าย premium"], color:"neutral" };
+  }
+  return { name:"Calendar / Vertical Spread", desc:"ใช้เมื่ออยากลด cost และคุม risk", bullets:["เหมาะกับการคุม premium","ใช้จับ support/resistance","ปรับ strike ตาม wall"], color: a.side === "BUY" ? "buy" : a.side === "SELL" ? "sell" : "neutral" };
+}
+
 function verticalMetrics(a){
   const width = Math.max(25, Math.round(a.dailyMove / 5) * 5);
   if(a.side === "SELL"){
@@ -288,108 +315,17 @@ function verticalMetrics(a){
     const maxLoss = Math.max(0, width - credit);
     const breakeven = a.entry + credit;
     const rr = credit > 0 ? ((width - credit) / credit) : null;
-    return {
-      name: "Bear Call Spread / Short Premium",
-      maxLoss: maxLoss,
-      breakeven: breakeven,
-      rr: rr,
-      desc: `ใช้กว้างประมาณ ${fmt(width)} pts, เครดิตโดยประมาณ ${fmt(credit)} pts, loss ถูกจำกัดด้วยความกว้างของ spread`
-    };
+    return { name:"Bear Call Spread / Short Premium", maxLoss, breakeven, rr, desc:`กว้างประมาณ ${fmt(width)} pts, เครดิตประมาณ ${fmt(credit)} pts` };
   }
   if(a.side === "BUY"){
     const debit = Math.max(5, Math.round(width * 0.30 / 5) * 5);
     const maxLoss = debit;
     const breakeven = a.entry + debit;
     const rr = width > debit ? ((width - debit) / debit) : null;
-    return {
-      name: "Bull Put Spread / Protective Put",
-      maxLoss: maxLoss,
-      breakeven: breakeven,
-      rr: rr,
-      desc: `ใช้กว้างประมาณ ${fmt(width)} pts, เดบิตโดยประมาณ ${fmt(debit)} pts, risk ถูกจำกัดตาม premium`
-    };
+    return { name:"Bull Put Spread / Protective Put", maxLoss, breakeven, rr, desc:`กว้างประมาณ ${fmt(width)} pts, เดบิตประมาณ ${fmt(debit)} pts` };
   }
   const debit = Math.max(5, Math.round(width * 0.28 / 5) * 5);
-  return {
-    name: "Straddle / Strangle / Spread",
-    maxLoss: debit,
-    breakeven: `Up ${fmt(a.base + debit)} / Down ${fmt(a.base - debit)}`,
-    rr: "N/A",
-    desc: "โครงสร้างแบบ long vol หรือ spread ต้องเลือกตาม edge ของกรอบราคาและ IV"
-  };
-}
-
-function strategyFit(a){
-  if(a.side === "SELL" && a.pcr < 0.95 && a.pricePos > 55){
-    return {
-      name: "Covered Call / Bear Call Spread",
-      desc: "ตลาดเอนไปทางฝั่งขาย, ราคาใกล้ upper edge, และ flow call หนักพอให้เล่น short premium ได้",
-      bullets: [
-        "ใช้เมื่อคาดว่า price จะติด resistance / daily ceiling",
-        "เหมาะกับกรณี IV ยังสูงแต่เริ่มไม่ขยายเพิ่ม",
-        "เป้าคือเก็บ premium มากกว่าลุ้น breakout"
-      ],
-      color: "sell"
-    };
-  }
-  if(a.side === "BUY" && a.pcr > 1.05 && a.pricePos < 45){
-    return {
-      name: "Protective Put / Bull Put Spread",
-      desc: "put-heavy flow, ราคาอยู่ฝั่งล่างของกรอบ, เหมาะกับการ hedge downside หรือรับ bullish pullback",
-      bullets: [
-        "ใช้เมื่ออยากจำกัดความเสี่ยงขาลง",
-        "เหมาะกับแนวรับใหญ่หรือ put cluster เด่น",
-        "ถ้าราคาเด้งกลับจาก lower edge จะคุ้มกว่า long naked"
-      ],
-      color: "buy"
-    };
-  }
-  if(a.strength >= 80 && a.pricePos >= 35 && a.pricePos <= 65 && a.side === "WAIT"){
-    return {
-      name: "Short Straddle / Short Strangle",
-      desc: "ราคายังอยู่กลางกรอบ, expected move ยังไม่ถูกใช้จนสุด, เหมาะกับการขาย volatility ถ้าคุมความเสี่ยงได้",
-      bullets: [
-        "ใช้เมื่อเชื่อว่าราคาจะ stay inside range",
-        "ต้องระวัง event risk และ breakout",
-        "ควรใช้เมื่อ IV สูงกว่าค่าเฉลี่ยและเริ่มนิ่ง"
-      ],
-      color: "neutral"
-    };
-  }
-  if(a.strength >= 75 && (a.pricePos <= 25 || a.pricePos >= 75) && Math.abs(a.volChg) > 0.10){
-    return {
-      name: "Long Straddle / Long Strangle",
-      desc: "ราคาเข้าใกล้ edge และ volatility เริ่มขยับ เหมาะกับการเล่น move ใหญ่สองทาง",
-      bullets: [
-        "ใช้เมื่อคาดว่า range จะขยาย",
-        "ดีถ้ามี catalyst หรือ breakout setup",
-        "ยอมเสีย premium เพื่อซื้อ convexity"
-      ],
-      color: "neutral"
-    };
-  }
-  if(a.bias === "NEUTRAL" && a.pricePos > 35 && a.pricePos < 65){
-    return {
-      name: "Wait / No Edge",
-      desc: "ข้อมูลยังไม่ชัดพอสำหรับ directional options play",
-      bullets: [
-        "ราคายังอยู่กึ่งกลาง expected move",
-        "อย่ารีบเลือกกลยุทธ์ที่ต้องชัดทาง",
-        "รอให้ OI cluster หรือ skew ชัดขึ้น"
-      ],
-      color: "neutral"
-    };
-  }
-  return {
-    name: "Calendar / Vertical Spread",
-    desc: "ใช้เมื่ออยากลด cost และเน้นจำกัด risk ด้วย spread structure",
-    bullets: [
-      "เหมาะกับการคุม premium",
-      "ใช้จับการเบรกของ support / resistance",
-      "ปรับ strike ตาม call/put cluster ที่เด่น"
-    ],
-    color: a.side === "BUY" ? "buy" : a.side === "SELL" ? "sell" : "neutral"
-  };
+  return { name:"Straddle / Strangle / Spread", maxLoss: debit, breakeven: `Up ${fmt(a.base + debit)} / Down ${fmt(a.base - debit)}`, rr: "N/A", desc:"โครงสร้าง long vol หรือ spread ต้องเลือกตาม edge ของกรอบราคาและ IV" };
 }
 
 function analyze(d){
@@ -417,9 +353,11 @@ function analyze(d){
   else if(skewDelta < -0.02) skewRegime = "Right Smirk";
   else { const curve = buildCurve(d.rows, d.spot); const ys = curve.rows.map(r=>r.settle); if(ys.length >= 3){ const mid = ys[Math.floor(ys.length/2)]; const ends = (ys[0] + ys[ys.length-1]) / 2; if(ends > mid * 1.02) skewRegime = "Smile"; } }
   const pcr = d.putOITotal / Math.max(1, d.callOITotal);
+  const pcrInfo = pcrBias(pcr, clamp(((d.spot - lower) / (upper - lower)) * 100, 0, 100));
   let sell = 0, buy = 0; const reasons = [];
-  if(pcr > 1.12){ buy += 1; reasons.push(["buy", `PCR ${pcr.toFixed(2)} → put-heavy flow`]); }
-  else if(pcr < 0.88){ sell += 1; reasons.push(["sell", `PCR ${pcr.toFixed(2)} → call-heavy flow`]); }
+  if(pcrInfo.bias === "Bullish"){ buy += 1; reasons.push(["buy", `PCR ${pcr.toFixed(2)} = bullish bias`]); }
+  else if(pcrInfo.bias === "Bearish"){ sell += 1; reasons.push(["sell", `PCR ${pcr.toFixed(2)} = bearish bias`]); }
+  else { reasons.push(["neutral", `PCR ${pcr.toFixed(2)} = neutral bias`]); }
   if(d.volChg > 0.12){ sell += 0.7; reasons.push(["neutral", `IV เด้ง (${d.volChg.toFixed(2)}) → ระวัง breakout`]); }
   else if(d.volChg < -0.12){ buy += 0.7; reasons.push(["neutral", `IV ยุบ (${d.volChg.toFixed(2)}) → เล่น fade ได้`]); }
   if(largestCall && d.spot >= largestCall.strike - dailyMove * 0.35){ sell += 1; reasons.push(["sell", `แตะ call cluster ใหญ่ ${fmt(largestCall.strike)}`]); }
@@ -442,7 +380,7 @@ function analyze(d){
   const edgeLabel = pricePos < 33 ? "Near lower edge" : pricePos > 66 ? "Near upper edge" : "Mid range";
   const strategy = strategyFit({ side, pcr, pricePos, volChg: d.volChg, strength, bias });
   const risk = verticalMetrics({ side, dailyMove, entry, base });
-  return { dailyMove, base, upper, lower, dailyCeil, dailyFloor, basis, pcr, skewDelta, skewRegime, largestCall, nextCall, largestPut, nextPut, bias, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid, side, curve: buildCurve(d.rows, d.spot), pricePos, strengthPos, edgeLabel, strategy, risk };
+  return { dailyMove, base, upper, lower, dailyCeil, dailyFloor, basis, pcr, pcrInfo, skewDelta, skewRegime, largestCall, nextCall, largestPut, nextPut, bias, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid, side, curve: buildCurve(d.rows, d.spot), pricePos, strengthPos, edgeLabel, strategy, risk };
 }
 
 function drawPlot(curve, spot, skewRegime){
@@ -475,7 +413,7 @@ function render(data, a){
   els.statChg.textContent = `${data.futChg>=0 ? "+" : ""}${fmt1(data.futChg)}`;
   els.statConf.textContent = `${a.conf} · Strength ${a.strength}`;
   els.oiTotals.textContent = `Put OI ${fmt(data.putOITotal)} vs Call OI ${fmt(data.callOITotal)}`;
-  els.oiRatio.textContent = `PCR ${a.pcr.toFixed(2)}`;
+  els.oiRatio.textContent = `PCR ${a.pcr.toFixed(2)} · ${a.pcrInfo.bias}`;
   els.signalStrength.textContent = `Signal Strength ${a.strength}/100`;
   els.trackMarker.style.left = a.pricePos + "%";
   els.signalMarker.style.left = a.strengthPos + "%";
@@ -487,12 +425,14 @@ function render(data, a){
 
   els.putFloorBox.innerHTML = a.largestPut ? `<div class="line"><strong style="color:#ffc2cb">${fmt(a.largestPut.strike)}</strong><span>${fmt(a.largestPut.put)} put</span></div><div class="line"><strong>${a.nextPut ? fmt(a.nextPut.strike) : "—"}</strong><span>Next Put</span></div><div class="line"><strong>${fmt(a.dailyFloor)}</strong><span>Daily Floor</span></div>` : "—";
   els.callResBox.innerHTML = a.largestCall ? `<div class="line"><strong style="color:#baf5d9">${fmt(a.largestCall.strike)}</strong><span>${fmt(a.largestCall.call)} call</span></div><div class="line"><strong>${a.nextCall ? fmt(a.nextCall.strike) : "—"}</strong><span>Next Call</span></div><div class="line"><strong>${fmt(a.dailyCeil)}</strong><span>Daily Ceiling</span></div>` : "—";
+
   els.planSub.textContent = `${data.ticker} · ${data.name} Futures · ${data.dataType}`;
   els.planBias.textContent = a.side;
   els.zoneWrap.innerHTML = `<div class="zone ${a.side==='SELL'?'sell':a.side==='BUY'?'buy':'neutral'}"><div class="zlab">${a.side === 'WAIT' ? 'WAIT / NO EDGE' : a.side + ' ZONE'}</div><div class="zval">${fmt(a.zoneLow)} – ${fmt(a.zoneHigh)}</div><div class="zsub">Entry ${a.entry ? fmt(a.entry) : '—'} · Stop ${a.stop ? fmt(a.stop) : '—'} · Invalidation ${a.invalid ? fmt(a.invalid) : '—'}</div></div>`;
   els.targetsWrap.innerHTML = `<div class="target"><div class="lab">Entry</div><div class="val">${a.entry ? fmt(a.entry) : '—'}</div></div><div class="target"><div class="lab">Stop</div><div class="val">${a.stop ? fmt(a.stop) : '—'}</div></div><div class="target swing"><div class="lab">Swing</div><div class="val">${a.swing ? fmt(a.swing) : '—'}</div></div><div class="target"><div class="lab">T1</div><div class="val">${a.t1 ? fmt(a.t1) : '—'}</div></div><div class="target"><div class="lab">T2</div><div class="val">${a.t2 ? fmt(a.t2) : '—'}</div></div><div class="target"><div class="lab">Basis</div><div class="val">${a.basis>=0 ? '+' : ''}${fmt1(a.basis)}</div></div>`;
+
   els.reasonsList.innerHTML = a.reasons.length ? a.reasons.map(r=>`<li><span class="bullet" style="background:${r[0]==='sell'?'var(--sell)':r[0]==='buy'?'var(--buy)':'var(--amber)'}"></span>${r[1]}</li>`).join('') : `<li><span class="bullet" style="background:var(--amber)"></span>ยังไม่มี bias ชัดเจน — ตลาดอยู่ในโหมดกลางกรอบ</li>`;
-  els.aiSummary.innerHTML = `<div class="summaryCard"><div class="tag">AI Summary</div><div class="big">${a.side} · ${a.conf} · ${a.strength}/100</div><div class="small">ภาพรวมตอนนี้เป็น <b>${a.skewRegime}</b> · Smirk Δ = ${a.skewDelta.toFixed(4)} · PCR ${a.pcr.toFixed(2)} · โซนสำคัญ ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)} · ${a.edgeLabel}.</div></div>`;
+  els.aiSummary.innerHTML = `<div class="summaryCard"><div class="tag">AI Summary</div><div class="big">${a.side} · ${a.conf} · ${a.strength}/100</div><div class="small">ภาพรวมตอนนี้เป็น <b>${a.skewRegime}</b> · Smirk Δ = ${a.skewDelta.toFixed(4)} · PCR ${a.pcr.toFixed(2)} (${a.pcrInfo.bias}) · ${a.edgeLabel}.</div></div>`;
   els.foot.textContent = `Updated from IntradayData.txt · ${new Date().toLocaleString("th-TH")}`;
   drawPlot(a.curve, data.spot, a.skewRegime);
 
