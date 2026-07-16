@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Gold Options Dashboard — v6 (fixed image loader)</title>
+<title>Gold Options Dashboard — v6 (snapshot toggle)</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
 :root{--bg:#07101a;--panel:#101b2c;--panel2:#0b1320;--line:#25364d;--line2:#1a2433;--text:#eaf1fb;--muted:#96a8c2;--dim:#72829c;--buy:#55d7a8;--sell:#ff6e7d;--amber:#e0b24f;--sky:#7eb8ff;--shadow:0 24px 70px rgba(0,0,0,.42)}
@@ -57,15 +57,16 @@ button:disabled{opacity:.6;cursor:default}
 .line{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin:3px 0}
 .line strong{font-weight:900}
 .callout{padding:12px 16px 16px}
-.imgframe{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#08111b;display:flex;align-items:center;justify-content:center;padding:8px}
+.imgframe{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#08111b;display:flex;align-items:center;justify-content:center;padding:8px;transition:max-height .28s ease,opacity .28s ease}
+.imgframe.collapsed{max-height:0;padding-top:0;padding-bottom:0;opacity:0;overflow:hidden;border:none}
 .imgframe img{max-width:100%;display:block;height:auto;border-radius:6px}
+.snapshot-controls{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.snapshot-controls label{font-size:12px;color:var(--muted);margin-right:6px}
+.select-toggle{background:transparent;border:1px solid var(--line2);color:var(--text);padding:6px 8px;border-radius:8px;font-size:13px}
 .zone{border-radius:14px;padding:13px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(8,14,22,.45),rgba(6,10,16,.20))}
 .zone.sell{border-color:rgba(255,110,125,.28);background:linear-gradient(180deg,rgba(90,20,26,.36),rgba(28,8,12,.18))}
 .zone.buy{border-color:rgba(85,215,168,.28);background:linear-gradient(180deg,rgba(15,74,56,.28),rgba(8,18,13,.20))}
 .zone.neutral{border-color:rgba(224,178,79,.24);background:linear-gradient(180deg,rgba(73,57,13,.28),rgba(20,16,7,.18))}
-.zone .zlab{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:7px}
-.zone .zval{font-size:22px;font-weight:900;line-height:1.1}
-.zone .zsub{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.45}
 .targets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 16px}
 .target{background:linear-gradient(180deg,rgba(12,18,28,.42),rgba(6,10,16,.12));border:1px solid var(--line2);border-radius:12px;padding:10px;text-align:center}
 .target .lab{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
@@ -188,10 +189,21 @@ button:disabled{opacity:.6;cursor:default}
       </div>
 
       <div class="callout">
-        <div class="boxhd" style="margin-bottom:8px">Latest Intraday OI Snapshot (image, จาก repo pageth)</div>
-        <div class="imgframe">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="boxhd" style="margin:0">Latest Intraday OI Snapshot (image, จาก repo pageth)</div>
+          <div class="snapshot-controls" aria-hidden="false">
+            <label for="snapToggle">Snapshot</label>
+            <select id="snapToggle" class="select-toggle" aria-label="Toggle snapshot display">
+              <option value="show">Show image</option>
+              <option value="hide">Hide image</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="imgframe" id="imgFrame">
           <img id="snapImg" alt="Gold Intraday OI snapshot">
         </div>
+
         <div class="plotNote">รูปนี้พยายามดึงจาก repo ต้นทางโดยตรง — ถ้า path หรือชื่อไฟล์รูปของ pageth เปลี่ยนไป รูปจะไม่ขึ้น (จะเห็นข้อความ fallback แทนแต่หน้าเว็บจะไม่พัง)</div>
       </div>
     </div>
@@ -219,17 +231,17 @@ button:disabled{opacity:.6;cursor:default}
 
 <script>
 /* -------------------------
-   Config / constants
+   Config / constants (kept from your uploaded file)
    ------------------------- */
 const RAW_URL = "https://raw.githubusercontent.com/pageth/Vol2VolData/main/IntradayData.txt";
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const HISTORY_KEY = "vol2vol_intraday_history_gc";
-const HISTORY_MAX_AGE_MS = 24 * 60 * 60 * 1000; // keep 24h
-const TREND_WINDOW_MS = 15 * 60 * 1000; // compare vs ~15 min ago
+const HISTORY_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const TREND_WINDOW_MS = 15 * 60 * 1000;
 const BUCKET_SIZE = 25;
 
 /* -------------------------
-   Utilities
+   Utilities (copied)
    ------------------------- */
 function fmt(n){ return Number.isFinite(+n) ? Math.round(+n).toLocaleString("en-US") : "—"; }
 function signed(n, digits){ const v = +n; if(!Number.isFinite(v)) return "—"; return (v>=0?"+":"") + v.toFixed(digits); }
@@ -295,7 +307,7 @@ function parseVol2Vol(text){
 }
 
 /* -------------------------
-   Wall detection & analysis (copied from your file)
+   Wall detection & analysis (copied)
    ------------------------- */
 function bucketize(rows, bucketSize){
   const map = new Map();
@@ -496,7 +508,7 @@ function drawPlot(curveRows, spot, skewRegime){
 }
 
 /* -------------------------
-   Render helpers
+   Render helpers (copied)
    ------------------------- */
 function renderWallList(el, walls, side){
   if(!walls.length){ el.innerHTML = "—"; return; }
@@ -510,9 +522,96 @@ function renderWallList(el, walls, side){
 }
 
 /* -------------------------
-   DOM refs & render pipeline
+   Robust image loader (fetch->blob to avoid CORS img issues)
    ------------------------- */
-let els = {}, autoTimer = null, refreshInFlight = false;
+const SNAP_CANDIDATES = [
+  "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday+OI.png",
+  "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday%2BOI.png",
+  "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday%20OI.png",
+  "https://raw.githubusercontent.com/pageth/Vol2VolData/images/Intraday+OI.png",
+  "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday%2BOI.png"
+];
+
+async function tryFetchImageAsBlob(url){
+  try{
+    const res = await fetch(cacheBust(url), { mode: 'cors', cache: 'no-store' });
+    if(!res.ok) return null;
+    const ct = res.headers.get('content-type') || '';
+    if(!ct.startsWith('image/')) return null;
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  }catch(e){
+    return null;
+  }
+}
+
+let snapLoadInProgress = false;
+async function tryLoadSnapshotImage(){
+  if(snapLoadInProgress) return;
+  snapLoadInProgress = true;
+  const imgEl = document.getElementById("snapImg");
+  if(!imgEl){ snapLoadInProgress = false; return; }
+
+  for(const candidate of SNAP_CANDIDATES){
+    const blobUrl = await tryFetchImageAsBlob(candidate);
+    if(blobUrl){
+      imgEl.src = blobUrl;
+      snapLoadInProgress = false;
+      return;
+    }
+  }
+
+  // fallback to direct src attempt then inline SVG message
+  const fallbackDirect = "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday+OI.png";
+  imgEl.crossOrigin = "anonymous";
+  imgEl.onerror = function(){
+    imgEl.onerror = null;
+    imgEl.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500"><rect width="100%" height="100%" fill="#08111b"/><text x="50%" y="50%" fill="#95a6bf" font-size="22" text-anchor="middle" dominant-baseline="middle" font-family="Arial">ไม่พบรูปที่ path นี้ — ตรวจสอบชื่อไฟล์/branch หรือวางรูปใน repo</text></svg>'
+    );
+    snapLoadInProgress = false;
+  };
+  imgEl.src = cacheBust(fallbackDirect);
+}
+
+/* -------------------------
+   Fetch & render pipeline (uses parseVol2Vol)
+   ------------------------- */
+let refreshInFlight = false;
+async function fetchAndRender(isAuto){
+  if(refreshInFlight) return;
+  refreshInFlight = true;
+  const btn = els.refreshBtn; btn.disabled = true; els.refreshIcon.classList.add("spin"); els.refreshLabel.textContent = isAuto ? "Auto..." : "Loading";
+  try{
+    const res = await fetch(cacheBust(RAW_URL), { cache:"no-store", credentials:"omit" });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const data = parseVol2Vol(text);
+    const history = loadHistory();
+    const a = analyze(data, history);
+    render(data, a);
+    els.errorBox.style.display = "none";
+    if(a.sanity.ok){
+      pushSnapshot(history, { t: Date.now(), spot: data.spot, vol: data.vol, pcr: a.pcr, skewDelta: a.skewDelta });
+    }
+  }catch(e){
+    els.errorBox.style.display = "block";
+    els.errorBox.textContent = "Error: " + (e && e.message ? e.message : "โหลดไม่สำเร็จ");
+    els.statusText.textContent = "โหลดข้อมูลไม่สำเร็จ";
+    els.statusDot.className = "dot bad";
+    console.error(e);
+  }finally{
+    btn.disabled = false;
+    els.refreshIcon.classList.remove("spin");
+    els.refreshLabel.textContent = "Refresh";
+    refreshInFlight = false;
+  }
+}
+
+/* -------------------------
+   Render pipeline (preserve ids)
+   ------------------------- */
+let els = {}, autoTimer = null;
 function render(data, a){
   els.emptyState.style.display = "none";
   els.dashboard.style.display = "flex";
@@ -599,96 +698,39 @@ function render(data, a){
 }
 
 /* -------------------------
-   Robust image loader
-   - Tries multiple candidate raw URLs and uses fetch->blob to avoid CORS img issues
+   Snapshot toggle control (dropdown)
+   - preserves DOM ids; toggles .collapsed on #imgFrame
    ------------------------- */
-const SNAP_CANDIDATES = [
-  // common raw variants
-  "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday+OI.png",
-  "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday%2BOI.png",
-  "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday%20OI.png",
-  // try branch 'images' (if repo uses branch named 'images' or odd layout)
-  "https://raw.githubusercontent.com/pageth/Vol2VolData/images/Intraday+OI.png",
-  // try GitHub user content via raw with encoded path
-  "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday%2BOI.png"
-];
-
-async function tryFetchImageAsBlob(url){
-  try{
-    const res = await fetch(cacheBust(url), { mode: 'cors', cache: 'no-store' });
-    if(!res.ok) return null;
-    const ct = res.headers.get('content-type') || '';
-    if(!ct.startsWith('image/')) return null;
-    const blob = await res.blob();
-    return URL.createObjectURL(blob);
-  }catch(e){
-    return null;
+function setSnapshotVisibility(mode){
+  const frame = document.getElementById("imgFrame");
+  const select = document.getElementById("snapToggle");
+  if(!frame || !select) return;
+  if(mode === "hide"){
+    frame.classList.add("collapsed");
+    select.value = "hide";
+  } else {
+    frame.classList.remove("collapsed");
+    select.value = "show";
   }
+  // store preference in sessionStorage so reload keeps user's choice during session
+  try{ sessionStorage.setItem("vol2vol_snap_visible", mode); }catch(e){}
 }
 
-let snapLoadInProgress = false;
-async function tryLoadSnapshotImage(){
-  if(snapLoadInProgress) return;
-  snapLoadInProgress = true;
-  const imgEl = document.getElementById("snapImg");
-  if(!imgEl){ snapLoadInProgress = false; return; }
-
-  // Try fetch->blob for each candidate sequentially
-  for(const candidate of SNAP_CANDIDATES){
-    const blobUrl = await tryFetchImageAsBlob(candidate);
-    if(blobUrl){
-      imgEl.src = blobUrl;
-      snapLoadInProgress = false;
-      return;
-    }
+document.addEventListener("DOMContentLoaded", ()=>{
+  // wire up toggle
+  const snapToggle = document.getElementById("snapToggle");
+  if(snapToggle){
+    snapToggle.addEventListener("change", (e)=>{
+      setSnapshotVisibility(e.target.value);
+    });
+    // restore preference
+    try{
+      const pref = sessionStorage.getItem("vol2vol_snap_visible");
+      if(pref === "hide") setSnapshotVisibility("hide");
+      else setSnapshotVisibility("show");
+    }catch(e){}
   }
-
-  // As a last resort, try setting <img> src directly to the most likely raw URL (some hosts allow it)
-  const fallbackDirect = "https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday+OI.png";
-  imgEl.crossOrigin = "anonymous";
-  imgEl.onerror = function(){
-    // fallback to inline SVG message
-    imgEl.onerror = null;
-    imgEl.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500"><rect width="100%" height="100%" fill="#08111b"/><text x="50%" y="50%" fill="#95a6bf" font-size="22" text-anchor="middle" dominant-baseline="middle" font-family="Arial">ไม่พบรูปที่ path นี้ — ตรวจสอบชื่อไฟล์/branch หรือวางรูปใน repo</text></svg>'
-    );
-    snapLoadInProgress = false;
-  };
-  imgEl.src = cacheBust(fallbackDirect);
-}
-
-/* -------------------------
-   Fetch & render pipeline (uses parseVol2Vol)
-   ------------------------- */
-async function fetchAndRender(isAuto){
-  if(refreshInFlight) return;
-  refreshInFlight = true;
-  const btn = els.refreshBtn; btn.disabled = true; els.refreshIcon.classList.add("spin"); els.refreshLabel.textContent = isAuto ? "Auto..." : "Loading";
-  try{
-    const res = await fetch(cacheBust(RAW_URL), { cache:"no-store", credentials:"omit" });
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const text = await res.text();
-    const data = parseVol2Vol(text);
-    const history = loadHistory();
-    const a = analyze(data, history);
-    render(data, a);
-    els.errorBox.style.display = "none";
-    if(a.sanity.ok){
-      pushSnapshot(history, { t: Date.now(), spot: data.spot, vol: data.vol, pcr: a.pcr, skewDelta: a.skewDelta });
-    }
-  }catch(e){
-    els.errorBox.style.display = "block";
-    els.errorBox.textContent = "Error: " + (e && e.message ? e.message : "โหลดไม่สำเร็จ");
-    els.statusText.textContent = "โหลดข้อมูลไม่สำเร็จ";
-    els.statusDot.className = "dot bad";
-    console.error(e);
-  }finally{
-    btn.disabled = false;
-    els.refreshIcon.classList.remove("spin");
-    els.refreshLabel.textContent = "Refresh";
-    refreshInFlight = false;
-  }
-}
+});
 
 /* -------------------------
    Auto refresh & init
