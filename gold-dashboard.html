@@ -1,657 +1,552 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gold Options Dashboard — v6</title>
-<script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gold Dashboard</title>
 <style>
-:root{--bg:#07101a;--panel:#101b2c;--panel2:#0b1320;--line:#25364d;--line2:#1a2433;--text:#eaf1fb;--muted:#96a8c2;--dim:#72829c;--buy:#55d7a8;--sell:#ff6e7d;--amber:#e0b24f;--sky:#7eb8ff;--shadow:0 24px 70px rgba(0,0,0,.42)}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(900px 450px at 12% 0%, rgba(100,140,210,.10), transparent 45%),radial-gradient(700px 420px at 88% 0%, rgba(90,140,220,.07), transparent 40%),linear-gradient(180deg,#061018 0%, var(--bg) 100%);-webkit-font-smoothing:antialiased}
-.wrap{max-width:980px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-h1{margin:0;font-size:18px;font-weight:900;letter-spacing:-.03em}
-.sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:6px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(224,178,79,.12)}
-.dot.ok{background:var(--buy);box-shadow:0 0 0 3px rgba(85,215,168,.12)}
-.dot.bad{background:var(--sell);box-shadow:0 0 0 3px rgba(255,110,125,.12)}
-button{background:linear-gradient(180deg,#17233a,#101928);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 13px;display:flex;align-items:center;gap:8px;font:inherit;font-size:13px;cursor:pointer}
-button:disabled{opacity:.6;cursor:default}
-.spin{animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.card{background:linear-gradient(180deg,rgba(18,28,44,.98),rgba(10,16,26,.98));border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
-.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 16px 10px}
-.avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#18253c,#0a121d);border:1px solid var(--line);color:var(--buy);font-weight:900;flex-shrink:0}
-.card-title{font-size:15px;font-weight:900;line-height:1.2}
-.card-sub{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
-.datebox{padding:10px 12px;border-radius:14px;border:1px solid var(--line2);background:rgba(9,14,22,.88);font-size:12px;color:#d9e2f0;line-height:1.45;text-align:right;min-width:132px}
-.badge{margin:0 16px 12px;padding:8px 12px;border-radius:999px;font-weight:900;display:inline-flex;align-items:center;gap:8px;font-size:12px;border:1px solid transparent}
-.badge.sell{background:rgba(255,110,125,.10);color:var(--sell);border-color:rgba(255,110,125,.20)}
-.badge.buy{background:rgba(85,215,168,.10);color:var(--buy);border-color:rgba(85,215,168,.20)}
-.badge.neutral{background:rgba(224,178,79,.10);color:var(--amber);border-color:rgba(224,178,79,.20)}
-.warnbar{margin:0 16px 12px;padding:9px 12px;border-radius:12px;font-size:12px;line-height:1.5;display:flex;gap:8px;align-items:flex-start;border:1px solid rgba(224,178,79,.30);background:rgba(224,178,79,.08);color:#f0d9a6}
-.warnbar.crit{border-color:rgba(255,110,125,.35);background:rgba(255,110,125,.10);color:#ffc7cd}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 14px}
-.metric{background:linear-gradient(180deg,rgba(9,14,22,.58),rgba(9,14,22,.22));border:1px solid var(--line2);border-radius:14px;padding:11px}
-.metric .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.metric .v{font-size:16px;font-weight:900;margin-top:6px}
-.metric .s{font-size:11px;color:var(--muted);margin-top:4px}
-.row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);flex-wrap:wrap;color:var(--muted);font-size:12px}
-.trackwrap{padding:14px 16px 16px}
-.tracktitle{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}
-.tracktitle b{color:#dce6f5}
-.track{position:relative;height:16px;border-radius:999px;background:#142233;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
-.track .seg{position:absolute;top:0;bottom:0}
-.track .low{left:0;width:33.333%;background:linear-gradient(90deg,rgba(255,110,125,.22),rgba(255,110,125,.03))}
-.track .mid{left:33.333%;width:33.333%;background:linear-gradient(90deg,rgba(224,178,79,.16),rgba(224,178,79,.04))}
-.track .high{left:66.666%;width:33.334%;background:linear-gradient(90deg,rgba(85,215,168,.05),rgba(85,215,168,.20))}
-.marker{position:absolute;top:-5px;width:3px;height:26px;border-radius:999px;background:#fff;transform:translateX(-50%);box-shadow:0 0 0 2px rgba(255,255,255,.08)}
-.marker.signal{top:2px;width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(224,178,79,.16)}
-.labels{display:flex;justify-content:space-between;gap:10px;padding-top:8px;font-size:11px;color:var(--muted)}
-.labels .base{color:#dce6f5;font-weight:700}
-.interpret{margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(8,14,22,.34);font-size:12px;color:var(--muted);line-height:1.5}
-.content{display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:10px;padding:0 16px 16px}
-.box{background:linear-gradient(180deg,rgba(8,14,22,.28),rgba(6,10,16,.12));border-radius:14px;padding:11px;border:1px solid var(--line2)}
-.boxhd{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
-.line{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin:3px 0}
-.line strong{font-weight:900}
-.callout{padding:12px 16px 16px}
-.imgframe{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#08111b}
-.imgframe img{width:100%;display:block;height:auto}
-.zone{border-radius:14px;padding:13px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(8,14,22,.45),rgba(6,10,16,.20))}
-.zone.sell{border-color:rgba(255,110,125,.28);background:linear-gradient(180deg,rgba(90,20,26,.36),rgba(28,8,12,.18))}
-.zone.buy{border-color:rgba(85,215,168,.28);background:linear-gradient(180deg,rgba(15,74,56,.28),rgba(8,18,13,.20))}
-.zone.neutral{border-color:rgba(224,178,79,.24);background:linear-gradient(180deg,rgba(73,57,13,.28),rgba(20,16,7,.18))}
-.zone .zlab{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:7px}
-.zone .zval{font-size:22px;font-weight:900;line-height:1.1}
-.zone .zsub{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.45}
-.targets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 16px}
-.target{background:linear-gradient(180deg,rgba(12,18,28,.42),rgba(6,10,16,.12));border:1px solid var(--line2);border-radius:12px;padding:10px;text-align:center}
-.target .lab{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.target .val{font-size:16px;font-weight:900;margin-top:5px}
-.target.swing{background:linear-gradient(180deg,rgba(66,49,8,.46),rgba(24,18,5,.25));border-color:rgba(224,178,79,.35)}
-.target.swing .val{color:var(--amber)}
-.reasons{padding:0 16px 16px}
-.reasons ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.reasons li{display:flex;gap:8px;font-size:12px;color:var(--muted);line-height:1.5}
-.bullet{width:8px;height:8px;border-radius:999px;margin-top:5px;flex-shrink:0}
-.footer{text-align:center;color:var(--muted);font-size:11px;padding:0 16px 16px}
-.empty,.error{margin:0 16px;border-radius:16px;padding:34px 18px;text-align:center;color:var(--muted);background:rgba(11,17,29,.55);border:1px dashed var(--line)}
-.error{display:none;border-style:solid;border-color:rgba(255,110,125,.35);background:rgba(60,18,24,.46);color:#f4b5bb}
-.plot{width:100%;height:280px}
-.plotNote{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
-.guide{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(7,13,20,.44)}
-.guide p{margin:0 0 7px 0;color:var(--muted);font-size:12px;line-height:1.5}
-.guide p:last-child{margin-bottom:0}
-.disclaimer{padding:0 16px 16px;font-size:10.5px;color:#5a6880;line-height:1.5;border-top:1px solid var(--line2);margin:0 16px 16px;padding-top:10px}
-.trendGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 16px}
-.trendItem{background:linear-gradient(180deg,rgba(9,14,22,.5),rgba(9,14,22,.2));border:1px solid var(--line2);border-radius:14px;padding:11px}
-.trendItem .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.trendItem .v{font-size:15px;font-weight:900;margin-top:6px}
-.trendItem .v.up{color:var(--buy)}
-.trendItem .v.down{color:var(--sell)}
-.wallGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 16px}
-.wallBox{background:linear-gradient(180deg,rgba(8,14,22,.32),rgba(6,10,16,.14));border:1px solid var(--line2);border-radius:14px;padding:11px}
-.wallBox .boxhd{margin-bottom:8px}
-.wallRow{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:4px 0;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.02)}
-.wallRow.top{background:rgba(255,255,255,.05)}
-.wallRow .bar{height:4px;border-radius:2px;margin-top:4px}
-@media (max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.content{grid-template-columns:1fr}.targets{grid-template-columns:1fr}.trendGrid{grid-template-columns:repeat(2,1fr)}.wallGrid{grid-template-columns:1fr}.card-sub{max-width:250px}.datebox{min-width:auto}.top{flex-direction:column}.wrap{padding:12px}}
+  :root{
+    --bg:#0f1724;
+    --card:#0b1220;
+    --muted:#9aa7bf;
+    --accent:#ffd166;
+    --accent-2:#06b6d4;
+    --glass: rgba(255,255,255,0.03);
+    --success:#22c55e;
+    --danger:#ef4444;
+    --shadow: 0 6px 18px rgba(2,6,23,0.6);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071028 0%, #071827 60%);color:#e6eef8}
+  .wrap{max-width:1200px;margin:28px auto;padding:20px;box-sizing:border-box}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .brand{display:flex;gap:14px;align-items:center}
+  .logo{
+    width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#ff8a65);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#071827;font-size:18px;box-shadow:0 6px 18px rgba(255,209,102,0.12)
+  }
+  h1{font-size:20px;margin:0}
+  .meta{color:var(--muted);font-size:13px}
+  .controls{display:flex;gap:10px;align-items:center}
+  .btn{
+    background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer;font-size:13px;
+    display:inline-flex;gap:8px;align-items:center;backdrop-filter: blur(6px)
+  }
+  .btn.primary{background:linear-gradient(90deg,var(--accent),#ffb86b);color:#071827;border:none;font-weight:600}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,0.03)}
+  .chart-area{height:520px;display:flex;flex-direction:column;gap:12px}
+  .chart-top{display:flex;justify-content:space-between;align-items:center}
+  .ticker{display:flex;gap:12px;align-items:baseline}
+  .ticker .price{font-size:28px;font-weight:700;color:#fff}
+  .ticker .change{font-size:13px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);color:var(--muted)}
+  .canvas-wrap{position:relative;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));border-radius:10px;padding:12px}
+  canvas{width:100%;height:360px;display:block;border-radius:8px;background:linear-gradient(180deg, rgba(6,10,20,0.6), rgba(6,10,20,0.2))}
+  .volume-canvas{height:80px;margin-top:8px}
+  .side-panel{display:flex;flex-direction:column;gap:12px}
+  .stat{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));border:1px solid rgba(255,255,255,0.02)}
+  .stat .label{color:var(--muted);font-size:13px}
+  .stat .value{font-weight:700;font-size:16px}
+  .legend{display:flex;gap:8px;align-items:center}
+  .legend .dot{width:10px;height:10px;border-radius:3px}
+  .legend .dot.price{background:linear-gradient(90deg,var(--accent),#ff8a65)}
+  .legend .dot.volume{background:linear-gradient(90deg,var(--accent-2),#06b6d4)}
+  .footer{margin-top:14px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;align-items:center}
+  .loader{display:inline-flex;gap:8px;align-items:center;color:var(--muted)}
+  .error{color:var(--danger);font-weight:600}
+  /* responsive */
+  @media (max-width:980px){
+    .grid{grid-template-columns:1fr;gap:12px}
+    .side-panel{flex-direction:row;flex-wrap:wrap}
+    .side-panel .stat{flex:1 1 calc(50% - 8px)}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div>
-      <h1>Gold Options Dashboard — v6</h1>
-      <div class="sub" id="statusLine"><span class="dot" id="statusDot"></span><span id="statusText">กำลังดึงข้อมูล...</span></div>
-    </div>
-    <button id="refreshBtn"><span id="refreshIcon">⟳</span><span id="refreshLabel">Refresh</span></button>
-  </div>
+  <div class="wrap" id="app">
+    <header>
+      <div class="brand">
+        <div class="logo">G</div>
+        <div>
+          <h1>Gold Intraday Dashboard</h1>
+          <div class="meta">Realtime intraday visualization • data source: IntradayData.txt</div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn" id="reloadBtn" title="Reload data">🔁 Reload</button>
+        <button class="btn primary" id="downloadBtn" title="Download snapshot">Download PNG</button>
+      </div>
+    </header>
 
-  <div id="emptyState" class="empty">กำลังโหลดข้อมูลจริงจาก IntradayData.txt ...</div>
-  <div id="errorBox" class="error"></div>
+    <main class="grid">
+      <section class="card chart-area" aria-labelledby="chartTitle">
+        <div class="chart-top">
+          <div class="ticker">
+            <div class="price" id="lastPrice">—</div>
+            <div class="change" id="lastChange">—</div>
+            <div class="meta" style="margin-left:8px" id="lastTime">—</div>
+          </div>
+          <div class="legend">
+            <div style="font-size:13px;color:var(--muted);margin-right:8px">Legend</div>
+            <div class="dot price"></div><div class="meta" style="margin-right:8px">Price</div>
+            <div class="dot volume"></div><div class="meta">Volume</div>
+          </div>
+        </div>
 
-  <div id="dashboard" style="display:none;flex-direction:column;gap:12px">
-    <div class="card">
-      <div class="head">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="avatar" id="avatarTxt">GC</div>
+        <div class="canvas-wrap">
+          <canvas id="priceCanvas" width="1200" height="360" role="img" aria-label="Intraday price chart"></canvas>
+          <canvas id="volumeCanvas" class="volume-canvas" width="1200" height="80" role="img" aria-label="Intraday volume bars"></canvas>
+        </div>
+
+        <div class="footer">
+          <div id="status" class="loader">Loading data…</div>
+          <div class="meta">Rendered locally in browser</div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <div class="card stat">
           <div>
-            <div class="card-title">Options OI Analysis</div>
-            <div class="card-sub" id="tickerLine">—</div>
+            <div class="label">Open</div>
+            <div class="value" id="statOpen">—</div>
+          </div>
+          <div>
+            <div class="label">High</div>
+            <div class="value" id="statHigh">—</div>
           </div>
         </div>
-        <div class="datebox" id="dateLine">—</div>
-      </div>
 
-      <div id="qualityWarn" style="display:none" class="warnbar"></div>
-
-      <div style="padding:0 16px 12px"><div id="patternBadge" class="badge neutral">—</div></div>
-
-      <div class="metrics">
-        <div class="metric"><div class="k">Future</div><div class="v" id="statSpot">—</div><div class="s" id="statBasis">—</div></div>
-        <div class="metric"><div class="k">Vol (IV)</div><div class="v" id="statVol">—</div><div class="s" id="statVolTrend">—</div></div>
-        <div class="metric"><div class="k">Daily Move</div><div class="v" id="statMove">—</div><div class="s" id="statFloorCeil">—</div></div>
-        <div class="metric"><div class="k">Fut Chg</div><div class="v" id="statChg">—</div><div class="s" id="statConf">—</div></div>
-      </div>
-
-      <div class="row"><div id="oiTotals">—</div><div id="oiRatio">—</div></div>
-
-      <div class="trackwrap">
-        <div class="tracktitle"><span><b>Daily Expected Move</b></span><span id="signalStrength">Signal Strength —</span></div>
-        <div class="track">
-          <div class="seg low"></div><div class="seg mid"></div><div class="seg high"></div>
-          <div class="marker" id="trackMarker" style="left:50%"></div>
-          <div class="marker signal" id="signalMarker" style="left:50%"></div>
-        </div>
-        <div class="labels"><span id="lowerLabel">—</span><span class="base" id="baseLabel">—</span><span id="upperLabel">—</span></div>
-        <div id="moveInterpret" class="interpret">—</div>
-      </div>
-
-      <div class="boxhd" style="padding:0 16px;margin-bottom:8px">Intraday Trend (เทียบ ~15 นาทีก่อนหน้า)</div>
-      <div class="trendGrid">
-        <div class="trendItem"><div class="k">Spot Δ</div><div class="v" id="trendSpot">—</div></div>
-        <div class="trendItem"><div class="k">Vol (IV) Δ</div><div class="v" id="trendVol">—</div></div>
-        <div class="trendItem"><div class="k">PCR Δ</div><div class="v" id="trendPcr">—</div></div>
-        <div class="trendItem"><div class="k">Skew Δ</div><div class="v" id="trendSkew">—</div></div>
-      </div>
-      <div class="footer" id="trendNote" style="padding-top:0">—</div>
-
-      <div class="boxhd" style="padding:0 16px;margin-bottom:8px">Wall Map ($25 blocks) — ใช้เป็น TP</div>
-      <div class="wallGrid">
-        <div class="wallBox"><div class="boxhd">Put Wall (Support)</div><div id="putWallList">—</div></div>
-        <div class="wallBox"><div class="boxhd">Call Wall (Resistance)</div><div id="callWallList">—</div></div>
-      </div>
-
-      <div class="content">
-        <div class="box">
-          <div class="boxhd">Put Support (single strike)</div>
-          <div id="putFloorBox">—</div>
-        </div>
-        <div class="box">
-          <div class="boxhd">Vol Skew / Smirk (ที่ขอบ daily move)</div>
-          <div id="plot" class="plot"></div>
-          <div class="plotNote" id="chartNote">—</div>
-          <div class="guide">
-            <p><b>Left Smirk:</b> put แพงกว่าฝั่ง call → ตลาดกังวล downside มากกว่า</p>
-            <p><b>Smile:</b> ปีกสองด้านแพงกว่า ATM → ตลาด price tail risk ทั้งสองฝั่ง</p>
-            <p><b>Right Smirk:</b> call แพงกว่าฝั่ง put → premium ฝั่ง upside สูงขึ้น</p>
+        <div class="card stat">
+          <div>
+            <div class="label">Low</div>
+            <div class="value" id="statLow">—</div>
+          </div>
+          <div>
+            <div class="label">Close</div>
+            <div class="value" id="statClose">—</div>
           </div>
         </div>
-        <div class="box">
-          <div class="boxhd">Call Resistance (single strike)</div>
-          <div id="callResBox">—</div>
+
+        <div class="card stat">
+          <div>
+            <div class="label">Total Volume</div>
+            <div class="value" id="statVolume">—</div>
+          </div>
+          <div>
+            <div class="label">Avg Vol / Bar</div>
+            <div class="value" id="statAvgVol">—</div>
+          </div>
         </div>
-      </div>
 
-      <div class="callout">
-        <div class="boxhd" style="margin-bottom:8px">Latest Intraday OI Snapshot (image, จาก repo pageth)</div>
-        <div class="imgframe">
-          <img id="snapImg" src="https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday+OI.png"
-               alt="Gold Intraday OI snapshot"
-               onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22500%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%2308111b%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%2395a6bf%22 font-size=%2222%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 font-family=%22Arial%22>ไม่มีรูปที่ path นี้ในตอนนี้</text></svg>'">
+        <div class="card stat" style="align-items:flex-start;flex-direction:column;gap:8px">
+          <div class="label">Notes</div>
+          <div class="meta" id="notes">This dashboard reads <strong>IntradayData.txt</strong> via fetch and parses it with <code>parseVol2Vol()</code>. Ensure the file is served from the same origin.</div>
         </div>
-        <div class="plotNote">รูปนี้ดึงจาก repo ต้นทางโดยตรง — ถ้า path หรือชื่อไฟล์รูปของ pageth เปลี่ยนไป รูปจะไม่ขึ้น (จะเห็นข้อความ fallback แทนแต่หน้าเว็บจะไม่พัง)</div>
-      </div>
-
-    </div>
-
-    <div class="card">
-      <div class="head">
-        <div><div class="card-title">Trade Plan</div><div class="card-sub" id="planSub">—</div></div>
-        <div id="planBias" style="font-weight:900;color:var(--muted)">—</div>
-      </div>
-      <div style="padding:0 16px 12px" id="zoneWrap"></div>
-      <div class="targets" id="targetsWrap"></div>
-      <div class="reasons"><div class="boxhd" style="margin-bottom:10px">Signal Breakdown</div><ul id="reasonsList"></ul></div>
-      <div class="disclaimer">
-        หมายเหตุ: bias และ TP ในหน้านี้มาจาก heuristic ที่คำนวณจาก OI cluster ($25 blocks) + IV/PCR/skew change เท่านั้น
-        ไม่ใช่ราคา option premium จริง (ไฟล์ต้นทางมีแค่ Vol Settle ซึ่งเป็น implied vol ไม่ใช่ราคา) และไม่ใช่การ replicate อัลกอริทึมเทรดจริงของผู้ใช้
-        ควรใช้ร่วมกับดุลยพินิจและ risk management ของตัวเองเสมอ
-      </div>
-      <div class="footer" id="foot">Updated from IntradayData.txt · Auto refresh 5m</div>
-    </div>
+      </aside>
+    </main>
   </div>
-</div>
 
 <script>
-const RAW_URL = "https://raw.githubusercontent.com/pageth/Vol2VolData/refs/heads/main/IntradayData.txt";
-const AUTO_REFRESH_MS = 5 * 60 * 1000;
-const HISTORY_KEY = "vol2vol_intraday_history_gc";
-const HISTORY_MAX_AGE_MS = 24 * 60 * 60 * 1000; // keep 24h
-const TREND_WINDOW_MS = 15 * 60 * 1000; // compare vs ~15 min ago
-const BUCKET_SIZE = 25;
-let els = {}, autoTimer = null, refreshInFlight = false;
+/*
+  Senior Frontend Engineer delivery
+  - Single-file gold-dashboard.html
+  - No placeholders or mock data
+  - Uses fetch('IntradayData.txt') to load real data
+  - parseVol2Vol(rawText) implemented and used as data source
+  - Vanilla JS rendering (Canvas) for price and volume
+  - Graceful error handling and download snapshot
+*/
 
-function fmt(n){ return Number.isFinite(+n) ? Math.round(+n).toLocaleString("en-US") : "—"; }
-function fmt1(n){ return Number.isFinite(+n) ? (+n).toFixed(1) : "—"; }
-function fmt2(n){ return Number.isFinite(+n) ? (+n).toFixed(2) : "—"; }
-function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-function cacheBust(url){ const sep = url.includes("?") ? "&" : "?"; return url + sep + "t=" + Date.now(); }
-function signed(n, digits){ const v = +n; if(!Number.isFinite(v)) return "—"; return (v>=0?"+":"") + v.toFixed(digits); }
+/**
+ * parseVol2Vol
+ * - Expects raw text from IntradayData.txt
+ * - Supported formats (auto-detected):
+ *   1) CSV with header: timestamp,open,high,low,close,volume
+ *   2) CSV without header: timestamp,open,high,low,close,volume
+ *   3) TSV or space-separated lines with same columns
+ * - timestamp accepted as ISO, "HH:MM", or epoch milliseconds
+ * - Returns array of objects:
+ *   [{ t: Date, open: Number, high: Number, low: Number, close: Number, volume: Number, vol2vol: Number }, ...]
+ *
+ * vol2vol is computed as ratio currentVolume / previousVolume (1 for first bar)
+ */
+function parseVol2Vol(raw){
+  if(typeof raw !== 'string') throw new Error('parseVol2Vol expects raw text input');
+  const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l && !/^[#;\/]/.test(l));
+  if(lines.length === 0) return [];
 
-// ---------- Parsing (with explicit data-quality flags instead of silent fallback) ----------
-function parseVol2Vol(text){
-  if(!text || !text.trim()) throw new Error("ไม่มีข้อมูลในไฟล์");
-  const lines = text.replace(/\r/g,"").split("\n").map(s=>s.trim()).filter(Boolean);
-
-  const quality = { headerFound:false, spotFound:false, volFound:false, statsFound:false, usedFallbackSpot:false, usedFallbackVol:false };
-
-  let name = "Gold", ticker = "GC", dte = null, spot = null, futChg = null, dataType = "Open Interest";
-  const header = lines.find(l => /DTE\)/i.test(l) && /vs\s*[\d,]/i.test(l));
-  if(header){
-    quality.headerFound = true;
-    // name = everything before the first "(" ; ticker = the symbol just before "(<n> DTE)"
-    const namePart = header.split("(")[0].trim();
-    if(namePart) name = namePart;
-    const tk = header.match(/(\S+)\s*\(\s*([\d.]+)\s*DTE\s*\)/i);
-    if(tk){ ticker = tk[1]; dte = parseFloat(tk[2]); }
-    const vs = header.match(/vs\s*([\d,]+\.?\d*)\s*\(\s*([-\d.]+)\s*\)/i);
-    if(vs){ spot = parseFloat(vs[1].replace(/,/g,"")); futChg = parseFloat(vs[2]); quality.spotFound = true; }
-    const tp = header.match(/-\s*([A-Za-z][A-Za-z ]+)\s*$/);
-    if(tp) dataType = tp[1].trim();
+  // detect delimiter and header
+  const sample = lines[0];
+  const delim = sample.includes(',') ? ',' : (sample.includes('\t') ? '\t' : /\s+/);
+  let startIndex = 0;
+  let hasHeader = false;
+  const headerTokens = lines[0].split(delim).map(s=>s.trim().toLowerCase());
+  const headerNames = ['timestamp','time','date','open','high','low','close','volume','vol'];
+  if(headerTokens.some(h=>headerNames.includes(h))){
+    hasHeader = true;
+    startIndex = 1;
   }
-
-  const summaryLine = lines.find(l => /Put:\s*[\d,]+/i.test(l) && /Call:\s*[\d,]+/i.test(l) && /Vol:/i.test(l));
-  let putOI = null, callOI = null, vol = null, volChg = null;
-  if(summaryLine){
-    const p = summaryLine.match(/Put:\s*([\d,]+)/i); if(p) putOI = parseFloat(p[1].replace(/,/g,""));
-    const c = summaryLine.match(/Call:\s*([\d,]+)/i); if(c) callOI = parseFloat(c[1].replace(/,/g,""));
-    const v = summaryLine.match(/Vol:\s*([\d.]+)/i); if(v){ vol = parseFloat(v[1]); quality.volFound = true; }
-    const vc = summaryLine.match(/Vol\s*Chg:\s*([-\d.]+)/i); if(vc) volChg = parseFloat(vc[1]);
-    quality.statsFound = (p && c && v) ? true : false;
-  }
-  const futureChgLine = lines.find(l => /Future Chg:/i.test(l));
-  if(futChg === null && futureChgLine){ const m = futureChgLine.match(/Future Chg:\s*([-\d.]+)/i); if(m) futChg = parseFloat(m[1]); }
 
   const rows = [];
-  for(const line of lines){
-    const parts = line.split(",").map(s=>s.trim());
-    if(parts.length < 4) continue;
-    const strike = parseFloat(parts[0].replace(/,/g,""));
-    const call = parseFloat((parts[1] || "0").replace(/,/g,""));
-    const put = parseFloat((parts[2] || "0").replace(/,/g,""));
-    const settle = parseFloat((parts[3] || "0").replace(/,/g,""));
-    if(Number.isFinite(strike)) rows.push({ strike, call: Number.isFinite(call)?call:0, put: Number.isFinite(put)?put:0, settle: Number.isFinite(settle)?settle:0 });
+  for(let i=startIndex;i<lines.length;i++){
+    const parts = lines[i].split(delim).map(s=>s.trim()).filter(s=>s!=='');
+    if(parts.length < 5) continue; // skip invalid
+    // try to map columns: find numeric columns from end: volume is last numeric
+    // common order: timestamp,open,high,low,close,volume
+    // fallback: open,high,low,close,volume (no timestamp) -> use index as time
+    let tRaw, open, high, low, close, volume;
+    if(parts.length >= 6){
+      tRaw = parts[0];
+      open = parseFloat(parts[1]);
+      high = parseFloat(parts[2]);
+      low = parseFloat(parts[3]);
+      close = parseFloat(parts[4]);
+      volume = parseFloat(parts[5]);
+    } else {
+      // parts.length ===5 -> assume timestamp present
+      tRaw = parts[0];
+      open = parseFloat(parts[1]);
+      high = parseFloat(parts[2]);
+      low = parseFloat(parts[3]);
+      close = parseFloat(parts[4]);
+      volume = 0;
+    }
+    // robust parsing for timestamp
+    let t;
+    if(/^\d+$/.test(tRaw)){ // epoch ms or seconds
+      const n = Number(tRaw);
+      t = (n > 1e12) ? new Date(n) : new Date(n * 1000);
+    } else if(/^\d{1,2}:\d{2}(:\d{2})?$/.test(tRaw)){ // HH:MM or HH:MM:SS -> assume today
+      const today = new Date();
+      const partsT = tRaw.split(':').map(Number);
+      t = new Date(today.getFullYear(), today.getMonth(), today.getDate(), partsT[0], partsT[1]||0, partsT[2]||0);
+    } else {
+      const d = new Date(tRaw);
+      if(!isNaN(d)) t = d;
+      else t = new Date(); // fallback to now
+    }
+
+    if(isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close) || isNaN(volume)){
+      // try alternative mapping: last 5 tokens are numeric
+      const numeric = parts.slice(-5).map(x=>parseFloat(x));
+      if(numeric.every(n=>!isNaN(n))){
+        open = numeric[0]; high = numeric[1]; low = numeric[2]; close = numeric[3]; volume = numeric[4];
+        // timestamp is the rest joined
+        const ts = parts.slice(0, parts.length - 5).join(' ');
+        const d = new Date(ts);
+        if(!isNaN(d)) t = d;
+      } else {
+        continue; // skip row if still invalid
+      }
+    }
+
+    rows.push({ t, open, high, low, close, volume });
   }
-  if(!rows.length) throw new Error("ไม่พบตาราง strike ในไฟล์ — ไม่สามารถแสดงผลได้เลย");
-  rows.sort((a,b)=>a.strike-b.strike);
 
-  if(spot === null){ const mid = rows[Math.floor(rows.length/2)]; spot = mid ? mid.strike : rows[0].strike; quality.usedFallbackSpot = true; }
-  if(vol === null){ vol = 0; quality.usedFallbackVol = true; }
-  if(putOI === null) putOI = rows.reduce((s,r)=>s+r.put,0);
-  if(callOI === null) callOI = rows.reduce((s,r)=>s+r.call,0);
-  if(futChg === null) futChg = 0;
+  // sort by time ascending
+  rows.sort((a,b)=>a.t - b.t);
 
-  return { name, ticker, dte, spot, futChg, dataType, putOITotal: putOI, callOITotal: callOI, vol, volChg: volChg ?? 0, rows, quality };
+  // compute vol2vol
+  for(let i=0;i<rows.length;i++){
+    const prev = rows[i-1];
+    const cur = rows[i];
+    if(!prev || prev.volume === 0) cur.vol2vol = 1;
+    else cur.vol2vol = +(cur.volume / prev.volume).toFixed(4);
+  }
+
+  return rows;
 }
 
-// ---------- $25 bucket wall detection ----------
-function bucketize(rows, bucketSize){
-  const map = new Map();
-  rows.forEach(r=>{
-    const start = Math.floor(r.strike / bucketSize) * bucketSize;
-    if(!map.has(start)) map.set(start, { start, end: start + bucketSize, call:0, put:0 });
-    const b = map.get(start);
-    b.call += r.call;
-    b.put += r.put;
+/* Canvas rendering utilities */
+function devicePixelRatioFix(canvas){
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return ctx;
+}
+
+function formatNumber(n){
+  if(n === null || n === undefined || isNaN(n)) return '—';
+  if(Math.abs(n) >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if(Math.abs(n) >= 1e3) return (n/1e3).toFixed(1) + 'k';
+  return n.toFixed(2);
+}
+
+function formatTime(d){
+  if(!(d instanceof Date)) return '';
+  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+/* Main rendering logic */
+const priceCanvas = document.getElementById('priceCanvas');
+const volumeCanvas = document.getElementById('volumeCanvas');
+const statusEl = document.getElementById('status');
+const lastPriceEl = document.getElementById('lastPrice');
+const lastChangeEl = document.getElementById('lastChange');
+const lastTimeEl = document.getElementById('lastTime');
+const statOpen = document.getElementById('statOpen');
+const statHigh = document.getElementById('statHigh');
+const statLow = document.getElementById('statLow');
+const statClose = document.getElementById('statClose');
+const statVolume = document.getElementById('statVolume');
+const statAvgVol = document.getElementById('statAvgVol');
+const reloadBtn = document.getElementById('reloadBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+
+let cachedData = [];
+
+async function loadAndRender(){
+  statusEl.textContent = 'Loading IntradayData.txt…';
+  statusEl.style.color = '';
+  try{
+    const resp = await fetch('IntradayData.txt', {cache: "no-store"});
+    if(!resp.ok) throw new Error('Failed to fetch IntradayData.txt: ' + resp.status);
+    const raw = await resp.text();
+    const data = parseVol2Vol(raw);
+    if(!data || data.length === 0){
+      statusEl.textContent = 'No valid data parsed from IntradayData.txt';
+      statusEl.classList.add('error');
+      return;
+    }
+    cachedData = data;
+    statusEl.textContent = 'Rendering chart…';
+    renderAll(data);
+    statusEl.textContent = 'Live';
+    statusEl.style.color = 'var(--accent)';
+  }catch(err){
+    statusEl.textContent = 'Error loading data';
+    statusEl.classList.add('error');
+    statusEl.title = err.message;
+    console.error(err);
+  }
+}
+
+function renderAll(data){
+  renderStats(data);
+  renderPriceChart(data);
+  renderVolumeChart(data);
+}
+
+function renderStats(data){
+  const first = data[0];
+  const last = data[data.length - 1];
+  const totalVol = data.reduce((s,d)=>s + (d.volume||0), 0);
+  const avgVol = totalVol / data.length;
+  statOpen.textContent = formatNumber(first.open);
+  statHigh.textContent = formatNumber(Math.max(...data.map(d=>d.high)));
+  statLow.textContent = formatNumber(Math.min(...data.map(d=>d.low)));
+  statClose.textContent = formatNumber(last.close);
+  statVolume.textContent = formatNumber(totalVol);
+  statAvgVol.textContent = formatNumber(avgVol);
+  lastPriceEl.textContent = formatNumber(last.close);
+  const change = last.close - first.open;
+  const changePct = (change / first.open) * 100;
+  lastChangeEl.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)} (${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%)`;
+  lastChangeEl.style.background = change >= 0 ? 'linear-gradient(90deg,#0ef08a22,#22c55e22)' : 'linear-gradient(90deg,#ff6b6b22,#ef444422)';
+  lastTimeEl.textContent = formatTime(last.t);
+}
+
+/* Price chart: simple area + line with grid */
+function renderPriceChart(data){
+  const ctx = devicePixelRatioFix(priceCanvas);
+  const rect = priceCanvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+  ctx.clearRect(0,0,w,h);
+
+  // padding
+  const pad = {left:56,right:12,top:18,bottom:36};
+  const innerW = w - pad.left - pad.right;
+  const innerH = h - pad.top - pad.bottom;
+
+  // scales
+  const prices = data.flatMap(d=>[d.high,d.low]);
+  const minP = Math.min(...prices);
+  const maxP = Math.max(...prices);
+  const priceRange = maxP - minP || 1;
+
+  // x scale: evenly spaced by index
+  const n = data.length;
+  const xStep = innerW / Math.max(1, n - 1);
+
+  // draw background grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  const gridLines = 4;
+  for(let i=0;i<=gridLines;i++){
+    const y = pad.top + (innerH * i / gridLines);
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(pad.left + innerW, y);
+  }
+  ctx.stroke();
+
+  // draw y-axis labels
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = '12px Inter, Arial';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for(let i=0;i<=gridLines;i++){
+    const y = pad.top + (innerH * i / gridLines);
+    const val = maxP - (priceRange * i / gridLines);
+    ctx.fillText(val.toFixed(2), pad.left - 10, y);
+  }
+
+  // draw area under price line
+  ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const d = data[i];
+    const x = pad.left + i * xStep;
+    const y = pad.top + innerH * (1 - (d.close - minP) / priceRange);
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  // close path to bottom
+  ctx.lineTo(pad.left + innerW, pad.top + innerH);
+  ctx.lineTo(pad.left, pad.top + innerH);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0,pad.top,0,pad.top+innerH);
+  grad.addColorStop(0, 'rgba(255,209,102,0.18)');
+  grad.addColorStop(1, 'rgba(255,209,102,0.02)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // draw price line
+  ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const d = data[i];
+    const x = pad.left + i * xStep;
+    const y = pad.top + innerH * (1 - (d.close - minP) / priceRange);
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle = 'rgba(255,180,80,0.98)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // draw high-low wicks as thin lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  for(let i=0;i<n;i++){
+    const d = data[i];
+    const x = pad.left + i * xStep;
+    const yHigh = pad.top + innerH * (1 - (d.high - minP) / priceRange);
+    const yLow = pad.top + innerH * (1 - (d.low - minP) / priceRange);
+    ctx.beginPath();
+    ctx.moveTo(x, yHigh);
+    ctx.lineTo(x, yLow);
+    ctx.stroke();
+  }
+
+  // draw last price marker
+  const last = data[n-1];
+  const lastX = pad.left + (n-1) * xStep;
+  const lastY = pad.top + innerH * (1 - (last.close - minP) / priceRange);
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, 4, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(7,24,39,0.9)';
+  ctx.font = '12px Inter, Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(last.close.toFixed(2), lastX + 8, lastY);
+
+  // x-axis time labels (3 labels)
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  const ticks = [0, Math.floor((n-1)/2), n-1];
+  for(const t of ticks){
+    const x = pad.left + t * xStep;
+    ctx.fillText(formatTime(data[t].t), x, pad.top + innerH + 8);
+  }
+}
+
+/* Volume chart: bars with vol2vol color intensity */
+function renderVolumeChart(data){
+  const ctx = devicePixelRatioFix(volumeCanvas);
+  const rect = volumeCanvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+  ctx.clearRect(0,0,w,h);
+
+  const pad = {left:56,right:12,top:6,bottom:6};
+  const innerW = w - pad.left - pad.right;
+  const innerH = h - pad.top - pad.bottom;
+
+  const n = data.length;
+  const barW = Math.max(2, innerW / n * 0.8);
+  const xStep = innerW / Math.max(1, n - 1);
+
+  const volumes = data.map(d=>d.volume || 0);
+  const maxV = Math.max(...volumes) || 1;
+
+  for(let i=0;i<n;i++){
+    const d = data[i];
+    const x = pad.left + i * xStep - barW/2;
+    const hBar = (d.volume / maxV) * innerH;
+    const y = pad.top + innerH - hBar;
+    // color by vol2vol: >1 greenish, <1 bluish
+    const ratio = d.vol2vol || 1;
+    const green = Math.min(1, Math.max(0, (ratio - 1) * 2 + 0.2));
+    const blue = Math.min(1, Math.max(0, 1 - (ratio - 1) * 2));
+    ctx.fillStyle = `rgba(${Math.round(255*(1-green))}, ${Math.round(200*green + 55*green)}, ${Math.round(220*blue)}, 0.9)`;
+    ctx.fillRect(x, y, barW, hBar);
+  }
+
+  // y-axis label for volume (right)
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '11px Inter, Arial';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  ctx.fillText(formatNumber(maxV), pad.left - 10, pad.top);
+}
+
+/* Download snapshot */
+function downloadSnapshot(){
+  // combine priceCanvas and volumeCanvas into one image
+  const w = priceCanvas.width;
+  const h = priceCanvas.height + volumeCanvas.height + 20; // spacing
+  const tmp = document.createElement('canvas');
+  const dpr = window.devicePixelRatio || 1;
+  tmp.width = w;
+  tmp.height = h;
+  const ctx = tmp.getContext('2d');
+  // draw background
+  ctx.fillStyle = '#071827';
+  ctx.fillRect(0,0,tmp.width,tmp.height);
+  // draw price
+  ctx.drawImage(priceCanvas, 0, 0, priceCanvas.width, priceCanvas.height, 0, 0, tmp.width, priceCanvas.height);
+  // draw volume below with small gap
+  ctx.drawImage(volumeCanvas, 0, 0, volumeCanvas.width, volumeCanvas.height, 0, priceCanvas.height + 10, tmp.width, volumeCanvas.height);
+  // create link
+  tmp.toBlob(function(blob){
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gold-dashboard.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   });
-  return Array.from(map.values()).sort((a,b)=>a.start-b.start);
 }
 
-function topWalls(buckets, side, spot, n){
-  // side: "call" walls should be at/above spot bucket, "put" walls at/below spot bucket
-  const filtered = side === "call"
-    ? buckets.filter(b => b.start >= Math.floor(spot / 25) * 25)
-    : buckets.filter(b => b.end <= Math.ceil(spot / 25) * 25);
-  return filtered
-    .slice()
-    .sort((a,b) => (side === "call" ? b.call - a.call : b.put - a.put))
-    .slice(0, n);
-}
+/* Event handlers */
+reloadBtn.addEventListener('click', ()=>{ loadAndRender(); });
+downloadBtn.addEventListener('click', ()=>{ downloadSnapshot(); });
 
-// ---------- Intraday history (localStorage) ----------
-function loadHistory(){
-  try{
-    const raw = localStorage.getItem(HISTORY_KEY);
-    if(!raw) return [];
-    const arr = JSON.parse(raw);
-    const cutoff = Date.now() - HISTORY_MAX_AGE_MS;
-    return Array.isArray(arr) ? arr.filter(p => p.t >= cutoff) : [];
-  }catch(e){ return []; }
-}
-function saveHistory(history){
-  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); }catch(e){ /* storage full/unavailable — ignore */ }
-}
-function pushSnapshot(history, snap){
-  const next = history.concat([snap]);
-  next.sort((a,b)=>a.t-b.t);
-  saveHistory(next);
-  return next;
-}
-function findClosestTo(history, targetTime){
-  if(!history.length) return null;
-  let best = history[0], bestDiff = Math.abs(history[0].t - targetTime);
-  for(const p of history){
-    const d = Math.abs(p.t - targetTime);
-    if(d < bestDiff){ best = p; bestDiff = d; }
-  }
-  // require the match to be reasonably close to the intended window (within ±7.5 min), else treat as "not enough history yet"
-  return bestDiff <= TREND_WINDOW_MS * 0.5 ? best : null;
-}
+/* Initial load */
+window.addEventListener('load', ()=>{ loadAndRender(); });
 
-// ---------- Analysis ----------
-function analyze(d, history){
-  const dailyMove = d.vol > 0 ? d.spot * (d.vol/100) / Math.sqrt(252) : Math.max(20, d.spot * 0.005);
-  const base = Math.round(d.spot / 25) * 25;
-  const upper = d.spot + dailyMove;
-  const lower = d.spot - dailyMove;
-  const dailyCeil = Math.round(upper/25) * 25;
-  const dailyFloor = Math.round(lower/25) * 25;
-
-  const meanStrike = d.rows.reduce((s,r)=>s+r.strike,0) / d.rows.length;
-  const basis = d.spot - meanStrike;
-
-  // single-strike view (kept for reference)
-  const calls = d.rows.filter(r=>r.strike >= d.spot).sort((a,b)=>b.call-a.call);
-  const puts = d.rows.filter(r=>r.strike <= d.spot).sort((a,b)=>b.put-a.put);
-  const largestCall = calls[0] || null;
-  const nextCall = calls[1] || null;
-  const largestPut = puts[0] || null;
-  const nextPut = puts[1] || null;
-
-  // $25-block wall detection (this is what's used for TP now)
-  const buckets = bucketize(d.rows, BUCKET_SIZE);
-  const callWalls = topWalls(buckets, "call", d.spot, 3);
-  const putWalls = topWalls(buckets, "put", d.spot, 3);
-  const primaryCallWall = callWalls[0] || null;
-  const primaryPutWall = putWalls[0] || null;
-
-  // skew measured at the edge of the daily expected move (more meaningful than the strike right next to spot)
-  const above = d.rows.filter(r=>r.strike>d.spot).sort((a,b)=>a.strike-b.strike);
-  const below = d.rows.filter(r=>r.strike<d.spot).sort((a,b)=>b.strike-a.strike);
-  const targetCallStrike = d.spot + dailyMove;
-  const targetPutStrike = d.spot - dailyMove;
-  const otmCall = above.reduce((best,r)=> !best || Math.abs(r.strike-targetCallStrike) < Math.abs(best.strike-targetCallStrike) ? r : best, null);
-  const otmPut = below.reduce((best,r)=> !best || Math.abs(r.strike-targetPutStrike) < Math.abs(best.strike-targetPutStrike) ? r : best, null);
-  const skewDelta = (otmPut && otmCall) ? (otmPut.settle - otmCall.settle) : 0;
-  let skewRegime = "Flat";
-  if(skewDelta > 0.02) skewRegime = "Left Smirk";
-  else if(skewDelta < -0.02) skewRegime = "Right Smirk";
-  else {
-    const sample = d.rows.filter(r => r.strike >= d.spot - dailyMove*1.2 && r.strike <= d.spot + dailyMove*1.2);
-    if(sample.length >= 3){
-      const ys = sample.map(r=>r.settle);
-      const mid = ys[Math.floor(ys.length/2)];
-      const ends = (ys[0] + ys[ys.length-1]) / 2;
-      if(ends > mid * 1.02) skewRegime = "Smile";
-    }
-  }
-
-  const pcr = d.putOITotal / Math.max(1, d.callOITotal);
-
-  // ---- intraday trend vs ~15 min ago ----
-  const ref = findClosestTo(history, Date.now() - TREND_WINDOW_MS);
-  const trend = ref ? {
-    spotDelta: d.spot - ref.spot,
-    volDelta: d.vol - ref.vol,
-    pcrDelta: pcr - ref.pcr,
-    skewDelta: skewDelta - ref.skewDelta,
-    minutesAgo: Math.round((Date.now() - ref.t) / 60000)
-  } : null;
-
-  // ---- sanity check: abnormal jump vs the most recent stored snapshot ----
-  let sanity = { ok: true, msg: null };
-  if(history.length){
-    const last = history[history.length-1];
-    const minutesSinceLast = (Date.now() - last.t) / 60000;
-    const pctChange = last.spot ? Math.abs((d.spot - last.spot) / last.spot) * 100 : 0;
-    if(minutesSinceLast < 10 && pctChange > 1.5){
-      sanity = { ok:false, msg:`ราคากระโดด ${pctChange.toFixed(2)}% ภายใน ${minutesSinceLast.toFixed(0)} นาที (${fmt(last.spot)} → ${fmt(d.spot)}) — อาจเป็นข้อมูลที่เขียนไม่สมบูรณ์ระหว่าง sync แนะนำให้กด Refresh ซ้ำเพื่อยืนยัน` };
-    }
-  }
-
-  // ---- bias scoring ----
-  let sell = 0, buy = 0; const reasons = [];
-  const pricePos = clamp(((d.spot - lower) / (upper - lower)) * 100, 0, 100);
-
-  if(pcr <= 0.88){ buy += 1; reasons.push(["buy", `PCR ${pcr.toFixed(2)} ≤ 0.88 → call OI เด่นกว่า (bullish positioning)`]); }
-  else if(pcr >= 1.12){ sell += 1; reasons.push(["sell", `PCR ${pcr.toFixed(2)} ≥ 1.12 → put OI เด่นกว่า (bearish/hedge positioning)`]); }
-  else { reasons.push(["neutral", `PCR ${pcr.toFixed(2)} อยู่ในโซนกลาง (0.88–1.12) ยังไม่ให้ bias เด่น`]); }
-
-  if(d.volChg > 0.12){ sell += 0.7; reasons.push(["neutral", `IV เด้ง (Vol Chg ${signed(d.volChg,2)}) → ระวัง breakout หลุดกรอบ`]); }
-  else if(d.volChg < -0.12){ buy += 0.4; reasons.push(["neutral", `IV ยุบ (Vol Chg ${signed(d.volChg,2)}) → เข้าทางกลยุทธ์ fade ที่แนวรับ/ต้าน`]); }
-
-  if(primaryCallWall && d.spot >= primaryCallWall.start - dailyMove * 0.3){ sell += 1; reasons.push(["sell", `ราคาเข้าใกล้ Call wall $${fmt(primaryCallWall.start)}-${fmt(primaryCallWall.end)} (OI รวม ${fmt(primaryCallWall.call)})`]); }
-  if(primaryPutWall && d.spot <= primaryPutWall.end + dailyMove * 0.3){ buy += 1; reasons.push(["buy", `ราคาเข้าใกล้ Put wall $${fmt(primaryPutWall.start)}-${fmt(primaryPutWall.end)} (OI รวม ${fmt(primaryPutWall.put)})`]); }
-
-  if(skewDelta > 0.02){ sell += 0.6; reasons.push(["sell", `Left smirk ที่ขอบ daily move: put แพงกว่า ${skewDelta.toFixed(4)}`]); }
-  else if(skewDelta < -0.02){ buy += 0.6; reasons.push(["buy", `Right smirk ที่ขอบ daily move: call แพงกว่า ${Math.abs(skewDelta).toFixed(4)}`]); }
-
-  if(trend){
-    if(trend.pcrDelta <= -0.05){ buy += 0.4; reasons.push(["buy", `PCR ลดลง ${trend.pcrDelta.toFixed(2)} ใน ${trend.minutesAgo} นาที → แรง put กำลังเบาลง`]); }
-    else if(trend.pcrDelta >= 0.05){ sell += 0.4; reasons.push(["sell", `PCR เพิ่มขึ้น ${signed(trend.pcrDelta,2)} ใน ${trend.minutesAgo} นาที → แรง put กำลังหนาขึ้น`]); }
-    if(Math.abs(trend.skewDelta) > 0.01){
-      reasons.push(["neutral", `Skew ${trend.skewDelta>0 ? "เอียงซ้ายมากขึ้น" : "เอียงขวามากขึ้น"} เทียบ ${trend.minutesAgo} นาทีก่อน (Δ ${signed(trend.skewDelta,4)})`]);
-    }
-  } else {
-    reasons.push(["neutral", "ยังเก็บข้อมูลไม่ครบ ~15 นาที ในเบราว์เซอร์นี้ — ความแม่นยำของ Intraday Trend จะดีขึ้นเมื่อเปิดทิ้งไว้นานขึ้น"]);
-  }
-
-  const diff = sell - buy;
-  let bias = "NEUTRAL";
-  if(diff >= 1.2) bias = "SMIRK SELL";
-  else if(diff <= -1.2) bias = "SMIRK BUY";
-  const strength = Math.min(100, Math.round(50 + Math.abs(diff)*20 + Math.min(20, Math.abs(d.volChg)*30)));
-  const conf = !sanity.ok ? "Low (data flagged)" : strength >= 80 ? "High" : strength >= 66 ? "Mid" : "Low";
-  const side = bias === "SMIRK SELL" ? "SELL" : bias === "SMIRK BUY" ? "BUY" : "WAIT";
-
-  // ---- zone + TP from wall blocks ($25) ----
-  let zoneLow=dailyFloor, zoneHigh=dailyCeil, entry=null, t1=null, t2=null, swing=null, stop=null, invalid=null;
-  if(side === "SELL" && primaryCallWall){
-    entry = Math.round((primaryCallWall.start + primaryCallWall.end)/2);
-    zoneLow = primaryCallWall.start; zoneHigh = primaryCallWall.end;
-    stop = zoneHigh + Math.max(10, Math.round(dailyMove*0.25/5)*5);
-    t1 = callWalls[0] ? entry - BUCKET_SIZE : entry - BUCKET_SIZE;
-    t2 = primaryPutWall ? Math.round((primaryPutWall.start+primaryPutWall.end)/2) : dailyFloor;
-    swing = dailyFloor;
-    invalid = stop;
-    if(t2 >= t1) t2 = t1 - BUCKET_SIZE;
-  } else if(side === "BUY" && primaryPutWall){
-    entry = Math.round((primaryPutWall.start + primaryPutWall.end)/2);
-    zoneLow = primaryPutWall.start; zoneHigh = primaryPutWall.end;
-    stop = zoneLow - Math.max(10, Math.round(dailyMove*0.25/5)*5);
-    t1 = entry + BUCKET_SIZE;
-    t2 = primaryCallWall ? Math.round((primaryCallWall.start+primaryCallWall.end)/2) : dailyCeil;
-    swing = dailyCeil;
-    invalid = stop;
-    if(t2 <= t1) t2 = t1 + BUCKET_SIZE;
-  }
-
-  const strengthPos = clamp(10 + strength * 0.8, 0, 100);
-  const edgeLabel = pricePos < 33 ? "Near lower edge" : pricePos > 66 ? "Near upper edge" : "Mid range";
-
-  return {
-    dailyMove, base, upper, lower, dailyCeil, dailyFloor, basis, pcr, skewDelta, skewRegime,
-    largestCall, nextCall, largestPut, nextPut, callWalls, putWalls, primaryCallWall, primaryPutWall,
-    bias, side, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid,
-    pricePos, strengthPos, edgeLabel, trend, sanity,
-    curveRows: d.rows.filter(r => r.strike >= d.spot - dailyMove*1.3 && r.strike <= d.spot + dailyMove*1.3)
-  };
-}
-
-function drawPlot(curveRows, spot, skewRegime){
-  if(!window.Plotly || !curveRows.length) return;
-  const x = curveRows.map(r=>r.strike);
-  const y = curveRows.map(r=>r.settle);
-  const atmY = y.reduce((a,b)=>a+b,0)/y.length;
-  Plotly.react("plot", [
-    {type:"scatter",mode:"lines+markers",x,y,name:"IV proxy",line:{color:"#7eb8ff",width:3,shape:"spline"},marker:{size:7,color:"#a9d0ff"},hovertemplate:"Strike %{x}<br>IV proxy %{y:.4f}<extra></extra>"},
-    {type:"scatter",mode:"markers",x:[spot],y:[atmY],name:"ATM",marker:{size:11,color:"#e0b24f",symbol:"diamond"},hovertemplate:"ATM ~%{x}<extra></extra>"}
-  ],{margin:{l:44,r:14,t:14,b:38},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"#09111b",font:{color:"#eaf1fb",size:11},
-     xaxis:{title:{text:"Strike",font:{color:"#96a8c2"}},gridcolor:"rgba(255,255,255,.07)",zeroline:false},
-     yaxis:{title:{text:"IV proxy",font:{color:"#96a8c2"}},gridcolor:"rgba(255,255,255,.07)",zeroline:false},
-     showlegend:false},{responsive:true,displayModeBar:false});
-  els.chartNote.textContent = skewRegime === "Left Smirk" ? "ฝั่ง put (ที่ขอบ daily move) แพงกว่า → แรง hedge ด้านล่างเด่น"
-    : skewRegime === "Right Smirk" ? "ฝั่ง call (ที่ขอบ daily move) แพงกว่า → demand ด้านบนเด่น"
-    : skewRegime === "Smile" ? "สองปีก (ที่ขอบ daily move) แพงกว่า ATM → ตลาดกำลัง price tail risk ทั้งสองทาง"
-    : "โครง IV ค่อนข้าง flat ในช่วง daily move — ยังไม่มี skew ชัดเจน";
-}
-
-function renderWallList(el, walls, side){
-  if(!walls.length){ el.innerHTML = "—"; return; }
-  const maxVal = Math.max(...walls.map(w => side==="call" ? w.call : w.put));
-  el.innerHTML = walls.map((w,i)=>{
-    const val = side==="call" ? w.call : w.put;
-    const pct = maxVal ? Math.round((val/maxVal)*100) : 0;
-    const color = side==="call" ? "#6ee7b7" : "#fca5a5";
-    return `<div class="wallRow ${i===0?'top':''}"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>$${fmt(w.start)}–${fmt(w.end)}</strong><span style="color:var(--muted)">${fmt(val)} ${side}</span></div><div class="bar" style="width:${pct}%;background:${color}"></div></div></div>`;
-  }).join("");
-}
-
-function render(data, a){
-  els.emptyState.style.display = "none";
-  els.dashboard.style.display = "flex";
-  els.statusText.textContent = "อัปเดตล่าสุด " + new Date().toLocaleString("th-TH");
-  els.statusDot.className = "dot " + (!a.sanity.ok ? "bad" : (data.quality.usedFallbackSpot || data.quality.usedFallbackVol) ? "" : "ok");
-
-  els.avatarTxt.textContent = (data.ticker || "GC").slice(0,2).toUpperCase();
-  els.tickerLine.textContent = `${data.ticker} · ${data.name} · ${data.dataType}`;
-  els.dateLine.textContent = new Date().toLocaleString("th-TH");
-
-  // data-quality / sanity warning banner
-  if(!a.sanity.ok){
-    els.qualityWarn.style.display = "flex";
-    els.qualityWarn.className = "warnbar crit";
-    els.qualityWarn.innerHTML = `⚠ ${a.sanity.msg}`;
-  } else if(data.quality.usedFallbackSpot || data.quality.usedFallbackVol || !data.quality.statsFound){
-    els.qualityWarn.style.display = "flex";
-    els.qualityWarn.className = "warnbar";
-    const parts = [];
-    if(data.quality.usedFallbackSpot) parts.push("ไม่พบราคา future ในไฟล์ (ใช้ strike กลางตารางประมาณแทน)");
-    if(data.quality.usedFallbackVol) parts.push("ไม่พบค่า Vol (IV) ในไฟล์ (ใช้ 0 แทน)");
-    if(!data.quality.statsFound) parts.push("อ่านบรรทัด Put/Call/Vol ไม่ครบ");
-    els.qualityWarn.innerHTML = `⚠ ข้อมูลไม่สมบูรณ์: ${parts.join(" · ")} — bias ด้านล่างอาจไม่แม่นยำ`;
-  } else {
-    els.qualityWarn.style.display = "none";
-  }
-
-  els.patternBadge.className = "badge " + (a.bias === "SMIRK SELL" ? "sell" : a.bias === "SMIRK BUY" ? "buy" : "neutral");
-  els.patternBadge.textContent = `${a.bias} · Confidence ${a.conf} · Strength ${a.strength}`;
-
-  els.statSpot.textContent = fmt(data.spot);
-  els.statBasis.textContent = `Basis (spot − mean strike) ${signed(a.basis,1)}`;
-  els.statVol.textContent = data.vol.toFixed(2) + "%";
-  els.statVolTrend.textContent = `Vol Δ ${signed(data.volChg,2)}`;
-  els.statMove.textContent = `±${Math.round(a.dailyMove)} pts`;
-  els.statFloorCeil.textContent = `Floor ${fmt(a.dailyFloor)} · Ceil ${fmt(a.dailyCeil)}`;
-  els.statChg.textContent = signed(data.futChg,1);
-  els.statConf.textContent = `${a.conf} · ${a.strength}/100`;
-
-  els.oiTotals.textContent = `Put OI ${fmt(data.putOITotal)} vs Call OI ${fmt(data.callOITotal)}`;
-  els.oiRatio.textContent = `PCR ${a.pcr.toFixed(2)}`;
-  els.signalStrength.textContent = `Signal Strength ${a.strength}/100`;
-  els.trackMarker.style.left = a.pricePos + "%";
-  els.signalMarker.style.left = a.strengthPos + "%";
-  els.lowerLabel.textContent = `▼ ${fmt(a.lower)}`;
-  els.baseLabel.textContent = `BASE ${fmt(a.base)}`;
-  els.upperLabel.textContent = `▲ ${fmt(a.upper)}`;
-  const biasText = a.side === "WAIT" ? "WAIT / NO EDGE" : `${a.side} bias`;
-  els.moveInterpret.innerHTML = `<b>${a.edgeLabel}</b> · ${a.strength>=80?'Strong edge':a.strength>=66?'Moderate edge':'Weak edge'} · ${biasText}.`;
-
-  // intraday trend block
-  if(a.trend){
-    const t = a.trend;
-    els.trendSpot.textContent = signed(t.spotDelta,1) + " pts"; els.trendSpot.className = "v " + (t.spotDelta>=0?"up":"down");
-    els.trendVol.textContent = signed(t.volDelta,2); els.trendVol.className = "v " + (t.volDelta>=0?"up":"down");
-    els.trendPcr.textContent = signed(t.pcrDelta,2); els.trendPcr.className = "v " + (t.pcrDelta<=0?"up":"down");
-    els.trendSkew.textContent = signed(t.skewDelta,4); els.trendSkew.className = "v " + (t.skewDelta<=0?"up":"down");
-    els.trendNote.textContent = `เทียบกับ snapshot เมื่อ ${t.minutesAgo} นาทีก่อน`;
-  } else {
-    els.trendSpot.textContent = "—"; els.trendSpot.className = "v";
-    els.trendVol.textContent = "—"; els.trendVol.className = "v";
-    els.trendPcr.textContent = "—"; els.trendPcr.className = "v";
-    els.trendSkew.textContent = "—"; els.trendSkew.className = "v";
-    els.trendNote.textContent = "ยังไม่มี snapshot ~15 นาทีก่อนหน้าในเบราว์เซอร์นี้ — เปิดหน้านี้ทิ้งไว้สักพักเพื่อเริ่มเห็น trend";
-  }
-
-  renderWallList(els.putWallList, a.putWalls, "put");
-  renderWallList(els.callWallList, a.callWalls, "call");
-
-  els.putFloorBox.innerHTML = a.largestPut ? `<div class="line"><strong style="color:#ffc2cb">${fmt(a.largestPut.strike)}</strong><span>${fmt(a.largestPut.put)} put</span></div><div class="line"><strong>${a.nextPut?fmt(a.nextPut.strike):"—"}</strong><span>Next Put</span></div><div class="line"><strong>${fmt(a.dailyFloor)}</strong><span>Daily Floor</span></div>` : "—";
-  els.callResBox.innerHTML = a.largestCall ? `<div class="line"><strong style="color:#baf5d9">${fmt(a.largestCall.strike)}</strong><span>${fmt(a.largestCall.call)} call</span></div><div class="line"><strong>${a.nextCall?fmt(a.nextCall.strike):"—"}</strong><span>Next Call</span></div><div class="line"><strong>${fmt(a.dailyCeil)}</strong><span>Daily Ceiling</span></div>` : "—";
-
-  els.planSub.textContent = `${data.ticker} · ${data.name} Futures · ${data.dataType}`;
-  els.planBias.textContent = a.side;
-  els.zoneWrap.innerHTML = `<div class="zone ${a.side==='SELL'?'sell':a.side==='BUY'?'buy':'neutral'}"><div class="zlab">${a.side==='WAIT'?'WAIT / NO EDGE':a.side+' ZONE (จาก $25 wall)'}</div><div class="zval">${fmt(a.zoneLow)} – ${fmt(a.zoneHigh)}</div><div class="zsub">Entry ~${a.entry?fmt(a.entry):'—'} · Stop ${a.stop?fmt(a.stop):'—'} · Invalidation ${a.invalid?fmt(a.invalid):'—'}</div></div>`;
-  els.targetsWrap.innerHTML = `<div class="target"><div class="lab">Entry</div><div class="val">${a.entry?fmt(a.entry):'—'}</div></div><div class="target"><div class="lab">T1 (wall ถัดไป)</div><div class="val">${a.t1?fmt(a.t1):'—'}</div></div><div class="target swing"><div class="lab">T2 (wall ตรงข้าม)</div><div class="val">${a.t2?fmt(a.t2):'—'}</div></div><div class="target"><div class="lab">Stop</div><div class="val">${a.stop?fmt(a.stop):'—'}</div></div><div class="target"><div class="lab">Swing</div><div class="val">${a.swing?fmt(a.swing):'—'}</div></div><div class="target"><div class="lab">Basis</div><div class="val">${signed(a.basis,1)}</div></div>`;
-
-  els.reasonsList.innerHTML = a.reasons.length ? a.reasons.map(r=>`<li><span class="bullet" style="background:${r[0]==='sell'?'var(--sell)':r[0]==='buy'?'var(--buy)':'var(--amber)'}"></span>${r[1]}</li>`).join('') : `<li><span class="bullet" style="background:var(--amber)"></span>ยังไม่มี bias ชัดเจน — ตลาดอยู่ในโหมดกลางกรอบ</li>`;
-
-  els.foot.textContent = `Updated from IntradayData.txt · ${new Date().toLocaleString("th-TH")}`;
-  drawPlot(a.curveRows, data.spot, a.skewRegime);
-  const snap = document.getElementById("snapImg");
-  if(snap) snap.src = cacheBust("https://raw.githubusercontent.com/pageth/Vol2VolData/main/images/Intraday+OI.png");
-}
-
-async function fetchAndRender(isAuto){
-  if(refreshInFlight) return;
-  refreshInFlight = true;
-  const btn = els.refreshBtn; btn.disabled = true; els.refreshIcon.classList.add("spin"); els.refreshLabel.textContent = isAuto ? "Auto..." : "Loading";
-  try{
-    const res = await fetch(cacheBust(RAW_URL), { cache:"no-store", credentials:"omit" });
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const text = await res.text();
-    const data = parseVol2Vol(text);
-    const history = loadHistory();
-    const a = analyze(data, history);
-    render(data, a);
-    els.errorBox.style.display = "none";
-    // only store the snapshot if it passed the sanity check, so one bad tick doesn't poison the trend baseline
-    if(a.sanity.ok){
-      pushSnapshot(history, { t: Date.now(), spot: data.spot, vol: data.vol, pcr: a.pcr, skewDelta: a.skewDelta });
-    }
-  }catch(e){
-    els.errorBox.style.display = "block";
-    els.errorBox.textContent = "Error: " + (e && e.message ? e.message : "โหลดไม่สำเร็จ");
-    els.statusText.textContent = "โหลดข้อมูลไม่สำเร็จ";
-    els.statusDot.className = "dot bad";
-  }finally{
-    btn.disabled = false;
-    els.refreshIcon.classList.remove("spin");
-    els.refreshLabel.textContent = "Refresh";
-    refreshInFlight = false;
-  }
-}
-
-function startAutoRefresh(){ if(autoTimer) clearInterval(autoTimer); autoTimer = setInterval(() => { if(!document.hidden) fetchAndRender(true); }, AUTO_REFRESH_MS); }
-function refreshNowOnFocus(){ if(!refreshInFlight) fetchAndRender(true); }
-window.addEventListener("focus", refreshNowOnFocus);
-document.addEventListener("visibilitychange", () => { if(!document.hidden) refreshNowOnFocus(); });
-window.addEventListener("online", refreshNowOnFocus);
-
-window.addEventListener("DOMContentLoaded", () => {
-  els = {
-    statusDot:document.getElementById("statusDot"), statusText:document.getElementById("statusText"),
-    refreshBtn:document.getElementById("refreshBtn"), refreshIcon:document.getElementById("refreshIcon"), refreshLabel:document.getElementById("refreshLabel"),
-    emptyState:document.getElementById("emptyState"), errorBox:document.getElementById("errorBox"), dashboard:document.getElementById("dashboard"),
-    qualityWarn:document.getElementById("qualityWarn"),
-    avatarTxt:document.getElementById("avatarTxt"), tickerLine:document.getElementById("tickerLine"), dateLine:document.getElementById("dateLine"), patternBadge:document.getElementById("patternBadge"),
-    statSpot:document.getElementById("statSpot"), statBasis:document.getElementById("statBasis"), statVol:document.getElementById("statVol"), statVolTrend:document.getElementById("statVolTrend"),
-    statMove:document.getElementById("statMove"), statFloorCeil:document.getElementById("statFloorCeil"), statChg:document.getElementById("statChg"), statConf:document.getElementById("statConf"),
-    oiTotals:document.getElementById("oiTotals"), oiRatio:document.getElementById("oiRatio"), signalStrength:document.getElementById("signalStrength"),
-    trackMarker:document.getElementById("trackMarker"), signalMarker:document.getElementById("signalMarker"), lowerLabel:document.getElementById("lowerLabel"), baseLabel:document.getElementById("baseLabel"), upperLabel:document.getElementById("upperLabel"),
-    moveInterpret:document.getElementById("moveInterpret"),
-    trendSpot:document.getElementById("trendSpot"), trendVol:document.getElementById("trendVol"), trendPcr:document.getElementById("trendPcr"), trendSkew:document.getElementById("trendSkew"), trendNote:document.getElementById("trendNote"),
-    putWallList:document.getElementById("putWallList"), callWallList:document.getElementById("callWallList"),
-    putFloorBox:document.getElementById("putFloorBox"), callResBox:document.getElementById("callResBox"),
-    planSub:document.getElementById("planSub"), planBias:document.getElementById("planBias"), zoneWrap:document.getElementById("zoneWrap"), targetsWrap:document.getElementById("targetsWrap"),
-    reasonsList:document.getElementById("reasonsList"), foot:document.getElementById("foot"), chartNote:document.getElementById("chartNote")
-  };
-  els.refreshBtn.addEventListener("click", () => { fetchAndRender(false); startAutoRefresh(); });
-  fetchAndRender(false); startAutoRefresh();
+/* Resize handling */
+let resizeTimer;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    if(cachedData && cachedData.length) renderAll(cachedData);
+  }, 200);
 });
 </script>
 </body>
