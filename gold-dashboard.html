@@ -3,24 +3,99 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gold Options Dashboard — V5.4.1</title>
+<title>Gold Options Dashboard — V5.4.2</title>
 <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
 <style>
 :root{--bg:#07101a;--panel:#101b2c;--panel2:#0b1320;--line:#25364d;--line2:#1a2433;--text:#eaf1fb;--muted:#96a8c2;--dim:#72829c;--buy:#55d7a8;--sell:#ff6e7d;--amber:#e0b24f;--sky:#7eb8ff;--shadow:0 24px 70px rgba(0,0,0,.42)}
-*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(900px 450px at 12% 0%, rgba(100,140,210,.10), transparent 45%),radial-gradient(700px 420px at 88% 0%, rgba(90,140,220,.07), transparent 40%),linear-gradient(180deg,#061018 0%, var(--bg) 100%);-webkit-font-smoothing:antialiased}
-.wrap{max-width:920px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.brandline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}h1{margin:0;font-size:18px;font-weight:900;letter-spacing:-.03em}.sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:6px}.dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(224,178,79,.12)}
-button{background:linear-gradient(180deg,#17233a,#101928);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 13px;display:flex;align-items:center;gap:8px;font:inherit;font-size:13px;cursor:pointer}button:disabled{opacity:.6;cursor:default}.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(900px 450px at 12% 0%, rgba(100,140,210,.10), transparent 45%),radial-gradient(700px 420px at 88% 0%, rgba(90,140,220,.07), transparent 40%),linear-gradient(180deg,#061018 0%, var(--bg) 100%);-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.brandline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+h1{margin:0;font-size:18px;font-weight:900;letter-spacing:-.03em}
+.sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(224,178,79,.12)}
+button{background:linear-gradient(180deg,#17233a,#101928);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 13px;display:flex;align-items:center;gap:8px;font:inherit;font-size:13px;cursor:pointer}
+button:disabled{opacity:.6;cursor:default}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 .card{background:linear-gradient(180deg,rgba(18,28,44,.98),rgba(10,16,26,.98));border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
-.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 16px 10px}.avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#18253c,#0a121d);border:1px solid var(--line);color:var(--buy);font-weight:900;flex-shrink:0}.titleblock{min-width:0}.card-title{font-size:15px;font-weight:900;line-height:1.2}.card-sub{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}.datebox{padding:10px 12px;border-radius:14px;border:1px solid var(--line2);background:rgba(9,14,22,.88);font-size:12px;color:#d9e2f0;line-height:1.45;text-align:right;min-width:132px}
-.badge{margin:0 16px 12px;padding:8px 12px;border-radius:999px;font-weight:900;display:inline-flex;align-items:center;gap:8px;font-size:12px;border:1px solid transparent}.badge.sell{background:rgba(255,110,125,.10);color:var(--sell);border-color:rgba(255,110,125,.20)}.badge.buy{background:rgba(85,215,168,.10);color:var(--buy);border-color:rgba(85,215,168,.20)}.badge.neutral{background:rgba(224,178,79,.10);color:var(--amber);border-color:rgba(224,178,79,.20)}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 14px}.metric{background:linear-gradient(180deg,rgba(9,14,22,.58),rgba(9,14,22,.22));border:1px solid var(--line2);border-radius:14px;padding:11px}.metric .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.metric .v{font-size:16px;font-weight:900;margin-top:6px}.metric .s{font-size:11px;color:var(--muted);margin-top:4px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 16px 10px}
+.avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#18253c,#0a121d);border:1px solid var(--line);color:var(--buy);font-weight:900;flex-shrink:0}
+.titleblock{min-width:0}
+.card-title{font-size:15px;font-weight:900;line-height:1.2}
+.card-sub{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
+.datebox{padding:10px 12px;border-radius:14px;border:1px solid var(--line2);background:rgba(9,14,22,.88);font-size:12px;color:#d9e2f0;line-height:1.45;text-align:right;min-width:132px}
+.badge{margin:0 16px 12px;padding:8px 12px;border-radius:999px;font-weight:900;display:inline-flex;align-items:center;gap:8px;font-size:12px;border:1px solid transparent}
+.badge.sell{background:rgba(255,110,125,.10);color:var(--sell);border-color:rgba(255,110,125,.20)}
+.badge.buy{background:rgba(85,215,168,.10);color:var(--buy);border-color:rgba(85,215,168,.20)}
+.badge.neutral{background:rgba(224,178,79,.10);color:var(--amber);border-color:rgba(224,178,79,.20)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 14px}
+.metric{background:linear-gradient(180deg,rgba(9,14,22,.58),rgba(9,14,22,.22));border:1px solid var(--line2);border-radius:14px;padding:11px}
+.metric .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.metric .v{font-size:16px;font-weight:900;margin-top:6px}
+.metric .s{font-size:11px;color:var(--muted);margin-top:4px}
 .row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);flex-wrap:wrap;color:var(--muted);font-size:12px}
-.trackwrap{padding:14px 16px 16px}.tracktitle{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}.tracktitle b{color:#dce6f5}.track{position:relative;height:16px;border-radius:999px;background:#142233;overflow:hidden;border:1px solid rgba(255,255,255,.05)}.track .seg{position:absolute;top:0;bottom:0}.track .low{left:0;width:33.333%;background:linear-gradient(90deg,rgba(255,110,125,.22),rgba(255,110,125,.03))}.track .mid{left:33.333%;width:33.333%;background:linear-gradient(90deg,rgba(224,178,79,.16),rgba(224,178,79,.04))}.track .high{left:66.666%;width:33.334%;background:linear-gradient(90deg,rgba(85,215,168,.05),rgba(85,215,168,.20))}.track .basefill{position:absolute;inset:0;background:linear-gradient(90deg, var(--sell) 0%, #d38a58 35%, #e0b24f 55%, #5ed4a8 100%);mix-blend-mode:screen;opacity:.45}.marker{position:absolute;top:-5px;width:3px;height:26px;border-radius:999px;background:#fff;transform:translateX(-50%);box-shadow:0 0 0 2px rgba(255,255,255,.08)}.marker.signal{top:2px;width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(224,178,79,.16)}.marker.price{background:#ffffff}.marker.edge{background:var(--sky)}.labels{display:flex;justify-content:space-between;gap:10px;padding-top:8px;font-size:11px;color:var(--muted)}.labels .base{color:#dce6f5;font-weight:700}.interpret{margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(8,14,22,.34);font-size:12px;color:var(--muted);line-height:1.5}
-.content{display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:10px;padding:0 16px 16px}.box{background:linear-gradient(180deg,rgba(8,14,22,.28),rgba(6,10,16,.12));border-radius:14px;padding:11px;border:1px solid var(--line2)}.boxhd{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}.line{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin:3px 0}.line strong{font-weight:900}.callout{padding:12px 16px 16px}.summaryCard{background:linear-gradient(135deg,rgba(17,26,39,.95),rgba(10,16,25,.92));border-radius:16px;border:1px solid rgba(126,184,255,.18);padding:12px 12px 13px}.summaryCard .tag{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--sky);margin-bottom:7px;font-weight:900}.summaryCard .big{font-size:18px;font-weight:900;line-height:1.15}.summaryCard .small{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}.zone{border-radius:14px;padding:13px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(8,14,22,.45),rgba(6,10,16,.20))}.zone.sell{border-color:rgba(255,110,125,.28);background:linear-gradient(180deg,rgba(90,20,26,.36),rgba(28,8,12,.18))}.zone.buy{border-color:rgba(85,215,168,.28);background:linear-gradient(180deg,rgba(15,74,56,.28),rgba(8,18,13,.20))}.zone.neutral{border-color:rgba(224,178,79,.24);background:linear-gradient(180deg,rgba(73,57,13,.28),rgba(20,16,7,.18))}.zone .zlab{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:7px}.zone .zval{font-size:22px;font-weight:900;line-height:1.1}.zone .zsub{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.45}
-.targets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 16px}.target{background:linear-gradient(180deg,rgba(12,18,28,.42),rgba(6,10,16,.12));border:1px solid var(--line2);border-radius:12px;padding:10px;text-align:center}.target .lab{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}.target .val{font-size:16px;font-weight:900;margin-top:5px}.target.swing{background:linear-gradient(180deg,rgba(66,49,8,.46),rgba(24,18,5,.25));border-color:rgba(224,178,79,.35)}.target.swing .val{color:var(--amber)}
-.reasons{padding:0 16px 16px}.reasons ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}.reasons li{display:flex;gap:8px;font-size:12px;color:var(--muted);line-height:1.5}.bullet{width:8px;height:8px;border-radius:999px;margin-top:5px;flex-shrink:0}.footer{text-align:center;color:var(--muted);font-size:11px;padding:0 16px 16px}.empty,.error{margin:0 16px;border-radius:16px;padding:34px 18px;text-align:center;color:var(--muted);background:rgba(11,17,29,.55);border:1px dashed var(--line)}.error{display:none;border-style:solid;border-color:rgba(255,110,125,.35);background:rgba(60,18,24,.46);color:#f4b5bb}.plot{width:100%;height:300px}.plotNote{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}.guide{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(7,13,20,.44)}.guide p{margin:0 0 7px 0;color:var(--muted);font-size:12px;line-height:1.5}.guide p:last-child{margin-bottom:0}
-.imgframe{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#08111b}.imgframe img{width:100%;display:block;height:auto}
+.trackwrap{padding:14px 16px 16px}
+.tracktitle{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}
+.tracktitle b{color:#dce6f5}
+.track{position:relative;height:16px;border-radius:999px;background:#142233;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+.track .seg{position:absolute;top:0;bottom:0}
+.track .low{left:0;width:33.333%;background:linear-gradient(90deg,rgba(255,110,125,.22),rgba(255,110,125,.03))}
+.track .mid{left:33.333%;width:33.333%;background:linear-gradient(90deg,rgba(224,178,79,.16),rgba(224,178,79,.04))}
+.track .high{left:66.666%;width:33.334%;background:linear-gradient(90deg,rgba(85,215,168,.05),rgba(85,215,168,.20))}
+.track .basefill{position:absolute;inset:0;background:linear-gradient(90deg,var(--sell) 0%, #d38a58 35%, #e0b24f 55%, #5ed4a8 100%);mix-blend-mode:screen;opacity:.45}
+.marker{position:absolute;top:-5px;width:3px;height:26px;border-radius:999px;background:#fff;transform:translateX(-50%);box-shadow:0 0 0 2px rgba(255,255,255,.08)}
+.marker.signal{top:2px;width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(224,178,79,.16)}
+.marker.price{background:#ffffff}
+.labels{display:flex;justify-content:space-between;gap:10px;padding-top:8px;font-size:11px;color:var(--muted)}
+.labels .base{color:#dce6f5;font-weight:700}
+.interpret{margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(8,14,22,.34);font-size:12px;color:var(--muted);line-height:1.5}
+.content{display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:10px;padding:0 16px 16px}
+.box{background:linear-gradient(180deg,rgba(8,14,22,.28),rgba(6,10,16,.12));border-radius:14px;padding:11px;border:1px solid var(--line2)}
+.boxhd{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
+.line{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin:3px 0}
+.line strong{font-weight:900}
+.callout{padding:12px 16px 16px}
+.summaryCard{background:linear-gradient(135deg,rgba(17,26,39,.95),rgba(10,16,25,.92));border-radius:16px;border:1px solid rgba(126,184,255,.18);padding:12px 12px 13px}
+.summaryCard .tag{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--sky);margin-bottom:7px;font-weight:900}
+.summaryCard .big{font-size:18px;font-weight:900;line-height:1.15}
+.summaryCard .small{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.zone{border-radius:14px;padding:13px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(8,14,22,.45),rgba(6,10,16,.20))}
+.zone.sell{border-color:rgba(255,110,125,.28);background:linear-gradient(180deg,rgba(90,20,26,.36),rgba(28,8,12,.18))}
+.zone.buy{border-color:rgba(85,215,168,.28);background:linear-gradient(180deg,rgba(15,74,56,.28),rgba(8,18,13,.20))}
+.zone.neutral{border-color:rgba(224,178,79,.24);background:linear-gradient(180deg,rgba(73,57,13,.28),rgba(20,16,7,.18))}
+.zone .zlab{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:7px}
+.zone .zval{font-size:22px;font-weight:900;line-height:1.1}
+.zone .zsub{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.45}
+.targets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 16px}
+.target{background:linear-gradient(180deg,rgba(12,18,28,.42),rgba(6,10,16,.12));border:1px solid var(--line2);border-radius:12px;padding:10px;text-align:center}
+.target .lab{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.target .val{font-size:16px;font-weight:900;margin-top:5px}
+.target.swing{background:linear-gradient(180deg,rgba(66,49,8,.46),rgba(24,18,5,.25));border-color:rgba(224,178,79,.35)}
+.target.swing .val{color:var(--amber)}
+.reasons{padding:0 16px 16px}
+.reasons ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.reasons li{display:flex;gap:8px;font-size:12px;color:var(--muted);line-height:1.5}
+.bullet{width:8px;height:8px;border-radius:999px;margin-top:5px;flex-shrink:0}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:0 16px 16px}
+.empty,.error{margin:0 16px;border-radius:16px;padding:34px 18px;text-align:center;color:var(--muted);background:rgba(11,17,29,.55);border:1px dashed var(--line)}
+.error{display:none;border-style:solid;border-color:rgba(255,110,125,.35);background:rgba(60,18,24,.46);color:#f4b5bb}
+.plot{width:100%;height:300px}
+.plotNote{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
+.guide{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(7,13,20,.44)}
+.guide p{margin:0 0 7px 0;color:var(--muted);font-size:12px;line-height:1.5}
+.guide p:last-child{margin-bottom:0}
+.imgframe{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#08111b}
+.imgframe img{width:100%;display:block;height:auto}
+.strategy{padding:0 16px 16px}
+.strategyCard{border:1px solid rgba(126,184,255,.18);border-radius:16px;padding:14px;background:linear-gradient(135deg,rgba(14,21,34,.95),rgba(9,14,23,.92))}
+.strategyCard .stlab{font-size:11px;color:var(--sky);text-transform:uppercase;letter-spacing:.08em;font-weight:900}
+.strategyCard .stname{font-size:19px;font-weight:900;margin-top:6px}
+.strategyCard .stdesc{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5}
+.strategyCard ul{margin:10px 0 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+.strategyCard li{display:flex;gap:8px;color:var(--muted);font-size:12px;line-height:1.45}
+.strategyCard .dot2{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
 @media (max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.content{grid-template-columns:1fr}.targets{grid-template-columns:1fr}.card-sub{max-width:250px}.datebox{min-width:auto}.top{flex-direction:column}.wrap{padding:12px}}
 </style>
 </head>
@@ -28,7 +103,7 @@ button{background:linear-gradient(180deg,#17233a,#101928);color:var(--text);bord
 <div class="wrap">
   <div class="top">
     <div>
-      <h1>Gold Options Dashboard — V5.4.1</h1>
+      <h1>Gold Options Dashboard — V5.4.2</h1>
       <div class="sub" id="statusLine"><span class="dot" id="statusDot"></span><span id="statusText">กำลังดึงข้อมูล...</span></div>
     </div>
     <button id="refreshBtn"><span id="refreshIcon">⟳</span><span id="refreshLabel">Refresh</span></button>
@@ -99,6 +174,15 @@ button{background:linear-gradient(180deg,#17233a,#101928);color:var(--text);bord
       </div>
 
       <div class="callout"><div class="imgframe"><img id="snapImg" src="https://raw.githubusercontent.com/pageth/Vol2VolData/images/Intraday+OI.png" alt="Gold Intraday OI" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'1200\' height=\'700\'><rect width=\'100%\' height=\'100%\' fill=\'%2308111b\'/><text x=\'50%\' y=\'50%\' fill=\'%2395a6bf\' font-size=\'28\' text-anchor=\'middle\' dominant-baseline=\'middle\' font-family=\'Arial\'>Image not ready</text></svg>'"></div></div>
+
+      <div class="strategy">
+        <div class="strategyCard" id="strategyCard">
+          <div class="stlab">Options Strategy Fit</div>
+          <div class="stname" id="strategyName">—</div>
+          <div class="stdesc" id="strategyDesc">—</div>
+          <ul id="strategyBullets"></ul>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -123,6 +207,7 @@ function fmt(n){ return Number.isFinite(+n) ? Math.round(+n).toLocaleString("en-
 function fmt1(n){ return Number.isFinite(+n) ? (+n).toFixed(1) : "—"; }
 function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 function cacheBust(url){ const sep = url.includes("?") ? "&" : "?"; return url + sep + "t=" + Date.now(); }
+
 function parseVol2Vol(text){
   if(!text || !text.trim()) throw new Error("ไม่มีข้อมูลในไฟล์");
   const lines = text.replace(/\r/g,"").split("\n").map(s=>s.trim()).filter(Boolean);
@@ -165,7 +250,88 @@ function parseVol2Vol(text){
   if(futChg === null) futChg = 0;
   return { name, ticker, dte, spot, futChg, dataType, putOITotal: putOI, callOITotal: callOI, vol, volChg: volChg ?? 0, rows };
 }
-function buildCurve(rows, spot){ const sorted = rows.slice().sort((a,b)=>a.strike-b.strike); let center = sorted.findIndex(r=>r.strike >= spot); if(center < 0) center = Math.floor(sorted.length/2); const sample = sorted.slice(Math.max(0, center - 4), Math.min(sorted.length, center + 5)); return { rows: sample.length >= 3 ? sample : sorted.slice(Math.max(0, sorted.length - 7)) }; }
+
+function buildCurve(rows, spot){
+  const sorted = rows.slice().sort((a,b)=>a.strike-b.strike);
+  let center = sorted.findIndex(r=>r.strike >= spot);
+  if(center < 0) center = Math.floor(sorted.length/2);
+  const sample = sorted.slice(Math.max(0, center - 4), Math.min(sorted.length, center + 5));
+  return { rows: sample.length >= 3 ? sample : sorted.slice(Math.max(0, sorted.length - 7)) };
+}
+
+function strategyFit(a){
+  if(a.side === "SELL" && a.pcr < 0.95 && a.pricePos > 55){
+    return {
+      name: "Covered Call / Bear Call Spread",
+      desc: "ตลาดเอนไปทางฝั่งขาย, ราคาใกล้ upper edge, และ flow call หนักพอให้เล่น short premium ได้",
+      bullets: [
+        "ใช้เมื่อคาดว่า price จะติด resistance / daily ceiling",
+        "เหมาะกับกรณี IV ยังสูงแต่เริ่มไม่ขยายเพิ่ม",
+        "เป้าคือเก็บ premium มากกว่าลุ้น breakout"
+      ],
+      color: "sell"
+    };
+  }
+  if(a.side === "BUY" && a.pcr > 1.05 && a.pricePos < 45){
+    return {
+      name: "Protective Put / Bull Put Spread",
+      desc: "put-heavy flow, ราคาอยู่ฝั่งล่างของกรอบ, เหมาะกับการ hedge downside หรือรับ bullish pullback",
+      bullets: [
+        "ใช้เมื่ออยากจำกัดความเสี่ยงขาลง",
+        "เหมาะกับแนวรับใหญ่หรือ put cluster เด่น",
+        "ถ้าราคาเด้งกลับจาก lower edge จะคุ้มกว่า long naked"
+      ],
+      color: "buy"
+    };
+  }
+  if(a.strength >= 80 && a.pricePos >= 35 && a.pricePos <= 65 && a.side === "WAIT"){
+    return {
+      name: "Short Straddle / Short Strangle",
+      desc: "ราคายังอยู่กลางกรอบ, expected move ยังไม่ถูกใช้จนสุด, เหมาะกับการขาย volatility ถ้าคุมความเสี่ยงได้",
+      bullets: [
+        "ใช้เมื่อเชื่อว่าราคาจะ stay inside range",
+        "ต้องระวัง event risk และ breakout",
+        "ควรใช้เมื่อ IV สูงกว่าค่าเฉลี่ยและเริ่มนิ่ง"
+      ],
+      color: "neutral"
+    };
+  }
+  if(a.strength >= 75 && (a.pricePos <= 25 || a.pricePos >= 75) && Math.abs(a.volChg) > 0.10){
+    return {
+      name: "Long Straddle / Long Strangle",
+      desc: "ราคาเข้าใกล้ edge และ volatility เริ่มขยับ เหมาะกับการเล่น move ใหญ่สองทาง",
+      bullets: [
+        "ใช้เมื่อคาดว่า range จะขยาย",
+        "ดีถ้ามี catalyst หรือ breakout setup",
+        "ยอมเสีย premium เพื่อซื้อ convexity"
+      ],
+      color: "neutral"
+    };
+  }
+  if(a.bias === "NEUTRAL" && a.pricePos > 35 && a.pricePos < 65){
+    return {
+      name: "Wait / No Edge",
+      desc: "ข้อมูลยังไม่ชัดพอสำหรับ directional options play",
+      bullets: [
+        "ราคายังอยู่กึ่งกลาง expected move",
+        "อย่ารีบเลือกกลยุทธ์ที่ต้องชัดทาง",
+        "รอให้ OI cluster หรือ skew ชัดขึ้น"
+      ],
+      color: "neutral"
+    };
+  }
+  return {
+    name: "Calendar / Vertical Spread",
+    desc: "ใช้เมื่ออยากลด cost และเน้นจำกัด risk ด้วย spread structure",
+    bullets: [
+      "เหมาะกับการคุม premium",
+      "ใช้จับการเบรกของ support / resistance",
+      "ปรับ strike ตาม call/put cluster ที่เด่น"
+    ],
+    color: a.side === "BUY" ? "buy" : a.side === "SELL" ? "sell" : "neutral"
+  };
+}
+
 function analyze(d){
   const dailyMove = d.vol > 0 ? d.spot * (d.vol/100) / Math.sqrt(252) : Math.max(20, d.spot * 0.005);
   const base = Math.round(d.spot / 25) * 25;
@@ -214,8 +380,10 @@ function analyze(d){
   const pricePos = clamp(((d.spot - lower) / (upper - lower)) * 100, 0, 100);
   const strengthPos = clamp(10 + strength * 0.8, 0, 100);
   const edgeLabel = pricePos < 33 ? "Near lower edge" : pricePos > 66 ? "Near upper edge" : "Mid range";
-  return { dailyMove, base, upper, lower, dailyCeil, dailyFloor, basis, pcr, skewDelta, skewRegime, largestCall, nextCall, largestPut, nextPut, bias, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid, side, curve: buildCurve(d.rows, d.spot), pricePos, strengthPos, edgeLabel };
+  const strategy = strategyFit({ ...{ side, pcr, pricePos, volChg: d.volChg, strength, bias }, });
+  return { dailyMove, base, upper, lower, dailyCeil, dailyFloor, basis, pcr, skewDelta, skewRegime, largestCall, nextCall, largestPut, nextPut, bias, strength, conf, reasons, zoneLow, zoneHigh, entry, stop, t1, t2, swing, invalid, side, curve: buildCurve(d.rows, d.spot), pricePos, strengthPos, edgeLabel, strategy };
 }
+
 function drawPlot(curve, spot, skewRegime){
   if(!window.Plotly) return;
   const x = curve.rows.map(r=>r.strike);
@@ -227,6 +395,7 @@ function drawPlot(curve, spot, skewRegime){
   ],{margin:{l:48,r:16,t:18,b:42},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"#09111b",font:{color:"#eaf1fb",size:12},xaxis:{title:{text:"Strike",font:{color:"#96a8c2"}},gridcolor:"rgba(255,255,255,.07)",zeroline:false},yaxis:{title:{text:"IV proxy",font:{color:"#96a8c2"}},gridcolor:"rgba(255,255,255,.07)",zeroline:false},showlegend:true,legend:{orientation:"h",yanchor:"bottom",y:1.02,xanchor:"center",x:0.5},annotations:[{x:spot,y:atmY,text:"ATM",showarrow:true,arrowhead:2,ax:26,ay:-26,font:{color:"#e0b24f",size:11},arrowcolor:"#e0b24f"}]},{responsive:true,displayModeBar:false});
   els.chartNote.textContent = skewRegime === "Left Smirk" ? "ฝั่ง put แพงกว่า สะท้อนแรง hedge ด้านล่าง" : skewRegime === "Right Smirk" ? "ฝั่ง call แพงกว่า สะท้อน demand ด้านบน" : skewRegime === "Smile" ? "สองปีกแพงกว่า ATM ตลาดกำลัง price tail risk" : "โครง IV ค่อนข้าง flat ระวังกรอบสั้น";
 }
+
 function render(data, a){
   els.emptyState.style.display = "none";
   els.dashboard.style.display = "flex";
@@ -254,6 +423,7 @@ function render(data, a){
   els.upperLabel.textContent = `▲ ${fmt(Math.round(a.upper))}`;
   const biasText = a.side === "WAIT" ? "WAIT / NO EDGE" : `${a.side} bias`;
   els.moveInterpret.innerHTML = `<b>${a.edgeLabel}</b> · ${a.strength >= 80 ? 'Strong edge' : a.strength >= 66 ? 'Moderate edge' : 'Weak edge'} · ${biasText}.`;
+
   els.putFloorBox.innerHTML = a.largestPut ? `<div class="line"><strong style="color:#ffc2cb">${fmt(a.largestPut.strike)}</strong><span>${fmt(a.largestPut.put)} put</span></div><div class="line"><strong>${a.nextPut ? fmt(a.nextPut.strike) : "—"}</strong><span>Next Put</span></div><div class="line"><strong>${fmt(a.dailyFloor)}</strong><span>Daily Floor</span></div>` : "—";
   els.callResBox.innerHTML = a.largestCall ? `<div class="line"><strong style="color:#baf5d9">${fmt(a.largestCall.strike)}</strong><span>${fmt(a.largestCall.call)} call</span></div><div class="line"><strong>${a.nextCall ? fmt(a.nextCall.strike) : "—"}</strong><span>Next Call</span></div><div class="line"><strong>${fmt(a.dailyCeil)}</strong><span>Daily Ceiling</span></div>` : "—";
   els.planSub.textContent = `${data.ticker} · ${data.name} Futures · ${data.dataType}`;
@@ -264,24 +434,64 @@ function render(data, a){
   els.aiSummary.innerHTML = `<div class="summaryCard"><div class="tag">AI Summary</div><div class="big">${a.side} · ${a.conf} · ${a.strength}/100</div><div class="small">ภาพรวมตอนนี้เป็น <b>${a.skewRegime}</b> · Smirk Δ = ${a.skewDelta.toFixed(4)} · PCR ${a.pcr.toFixed(2)} · โซนสำคัญ ${fmt(a.zoneLow)}–${fmt(a.zoneHigh)} · ${a.edgeLabel}.</div></div>`;
   els.foot.textContent = `Updated from IntradayData.txt · ${new Date().toLocaleString("th-TH")}`;
   drawPlot(a.curve, data.spot, a.skewRegime);
-  const snap = document.getElementById('snapImg'); if(snap) snap.src = cacheBust('https://raw.githubusercontent.com/pageth/Vol2VolData/images/Intraday+OI.png');
+
+  els.strategyName.textContent = a.strategy.name;
+  els.strategyDesc.textContent = a.strategy.desc;
+  const stratColor = a.strategy.color === "buy" ? "var(--buy)" : a.strategy.color === "sell" ? "var(--sell)" : "var(--amber)";
+  document.getElementById("strategyCard").style.borderColor = stratColor + "55";
+  document.getElementById("strategyCard").style.boxShadow = `0 0 0 1px ${stratColor}22 inset`;
+  els.strategyBullets.innerHTML = a.strategy.bullets.map(x => `<li><span class="dot2" style="background:${stratColor}"></span><span>${x}</span></li>`).join("");
+
+  const snap = document.getElementById("snapImg"); if(snap) snap.src = cacheBust("https://raw.githubusercontent.com/pageth/Vol2VolData/images/Intraday+OI.png");
 }
+
 async function fetchAndRender(isAuto){
   if(refreshInFlight) return;
   refreshInFlight = true;
-  const btn = els.refreshBtn; btn.disabled = true; els.refreshIcon.classList.add('spin'); els.refreshLabel.textContent = isAuto ? 'Auto...' : 'Loading';
-  try{ const res = await fetch(cacheBust(RAW_URL), { cache:'no-store', credentials:'omit' }); if(!res.ok) throw new Error('HTTP ' + res.status); const text = await res.text(); const data = parseVol2Vol(text); const analysis = analyze(data); render(data, analysis); els.errorBox.style.display = 'none'; }
-  catch(e){ els.errorBox.style.display = 'block'; els.errorBox.textContent = 'Error: ' + (e && e.message ? e.message : 'โหลดไม่สำเร็จ'); els.statusText.textContent = 'โหลดข้อมูลไม่สำเร็จ'; }
-  finally{ btn.disabled = false; els.refreshIcon.classList.remove('spin'); els.refreshLabel.textContent = 'Refresh'; refreshInFlight = false; }
+  const btn = els.refreshBtn; btn.disabled = true; els.refreshIcon.classList.add("spin"); els.refreshLabel.textContent = isAuto ? "Auto..." : "Loading";
+  try{
+    const res = await fetch(cacheBust(RAW_URL), { cache:"no-store", credentials:"omit" });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const data = parseVol2Vol(text);
+    const analysis = analyze(data);
+    render(data, analysis);
+    els.errorBox.style.display = "none";
+  }catch(e){
+    els.errorBox.style.display = "block";
+    els.errorBox.textContent = "Error: " + (e && e.message ? e.message : "โหลดไม่สำเร็จ");
+    els.statusText.textContent = "โหลดข้อมูลไม่สำเร็จ";
+  }finally{
+    btn.disabled = false;
+    els.refreshIcon.classList.remove("spin");
+    els.refreshLabel.textContent = "Refresh";
+    refreshInFlight = false;
+  }
 }
+
 function startAutoRefresh(){ if(autoTimer) clearInterval(autoTimer); autoTimer = setInterval(() => { if(!document.hidden) fetchAndRender(true); }, AUTO_REFRESH_MS); }
 function refreshNowOnFocus(){ if(!refreshInFlight) fetchAndRender(true); }
-window.addEventListener('focus', refreshNowOnFocus);
-document.addEventListener('visibilitychange', () => { if(!document.hidden) refreshNowOnFocus(); });
-window.addEventListener('online', refreshNowOnFocus);
-window.addEventListener('DOMContentLoaded', () => {
-  els = { statusText:document.getElementById('statusText'), refreshBtn:document.getElementById('refreshBtn'), refreshIcon:document.getElementById('refreshIcon'), refreshLabel:document.getElementById('refreshLabel'), emptyState:document.getElementById('emptyState'), errorBox:document.getElementById('errorBox'), dashboard:document.getElementById('dashboard'), avatarTxt:document.getElementById('avatarTxt'), tickerLine:document.getElementById('tickerLine'), dateLine:document.getElementById('dateLine'), patternBadge:document.getElementById('patternBadge'), statSpot:document.getElementById('statSpot'), statBasis:document.getElementById('statBasis'), statVol:document.getElementById('statVol'), statVolTrend:document.getElementById('statVolTrend'), statMove:document.getElementById('statMove'), statFloorCeil:document.getElementById('statFloorCeil'), statChg:document.getElementById('statChg'), statConf:document.getElementById('statConf'), oiTotals:document.getElementById('oiTotals'), oiRatio:document.getElementById('oiRatio'), signalStrength:document.getElementById('signalStrength'), trackMarker:document.getElementById('trackMarker'), signalMarker:document.getElementById('signalMarker'), lowerLabel:document.getElementById('lowerLabel'), baseLabel:document.getElementById('baseLabel'), upperLabel:document.getElementById('upperLabel'), moveInterpret:document.getElementById('moveInterpret'), putFloorBox:document.getElementById('putFloorBox'), callResBox:document.getElementById('callResBox'), planSub:document.getElementById('planSub'), planBias:document.getElementById('planBias'), zoneWrap:document.getElementById('zoneWrap'), targetsWrap:document.getElementById('targetsWrap'), reasonsList:document.getElementById('reasonsList'), aiSummary:document.getElementById('aiSummary'), foot:document.getElementById('foot'), chartNote:document.getElementById('chartNote'), refreshBtn:document.getElementById('refreshBtn'), refreshIcon:document.getElementById('refreshIcon'), refreshLabel:document.getElementById('refreshLabel') };
-  els.refreshBtn.addEventListener('click', () => { fetchAndRender(false); startAutoRefresh(); });
+
+window.addEventListener("focus", refreshNowOnFocus);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) refreshNowOnFocus(); });
+window.addEventListener("online", refreshNowOnFocus);
+
+window.addEventListener("DOMContentLoaded", () => {
+  els = {
+    statusText:document.getElementById("statusText"), refreshBtn:document.getElementById("refreshBtn"), refreshIcon:document.getElementById("refreshIcon"), refreshLabel:document.getElementById("refreshLabel"),
+    emptyState:document.getElementById("emptyState"), errorBox:document.getElementById("errorBox"), dashboard:document.getElementById("dashboard"), avatarTxt:document.getElementById("avatarTxt"),
+    tickerLine:document.getElementById("tickerLine"), dateLine:document.getElementById("dateLine"), patternBadge:document.getElementById("patternBadge"),
+    statSpot:document.getElementById("statSpot"), statBasis:document.getElementById("statBasis"), statVol:document.getElementById("statVol"), statVolTrend:document.getElementById("statVolTrend"),
+    statMove:document.getElementById("statMove"), statFloorCeil:document.getElementById("statFloorCeil"), statChg:document.getElementById("statChg"), statConf:document.getElementById("statConf"),
+    oiTotals:document.getElementById("oiTotals"), oiRatio:document.getElementById("oiRatio"), signalStrength:document.getElementById("signalStrength"),
+    trackMarker:document.getElementById("trackMarker"), signalMarker:document.getElementById("signalMarker"), lowerLabel:document.getElementById("lowerLabel"), baseLabel:document.getElementById("baseLabel"), upperLabel:document.getElementById("upperLabel"),
+    moveInterpret:document.getElementById("moveInterpret"), putFloorBox:document.getElementById("putFloorBox"), callResBox:document.getElementById("callResBox"),
+    planSub:document.getElementById("planSub"), planBias:document.getElementById("planBias"), zoneWrap:document.getElementById("zoneWrap"), targetsWrap:document.getElementById("targetsWrap"),
+    reasonsList:document.getElementById("reasonsList"), aiSummary:document.getElementById("aiSummary"), foot:document.getElementById("foot"), chartNote:document.getElementById("chartNote"),
+    refreshBtn:document.getElementById("refreshBtn"), refreshIcon:document.getElementById("refreshIcon"), refreshLabel:document.getElementById("refreshLabel"),
+    strategyName:document.getElementById("strategyName"), strategyDesc:document.getElementById("strategyDesc"), strategyBullets:document.getElementById("strategyBullets")
+  };
+  els.refreshBtn.addEventListener("click", () => { fetchAndRender(false); startAutoRefresh(); });
   fetchAndRender(false); startAutoRefresh();
 });
 </script>
