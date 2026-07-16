@@ -80,7 +80,7 @@ button:disabled{opacity:.6;cursor:default}
 .footer{text-align:center;color:var(--muted);font-size:11px;padding:0 16px 16px}
 .empty,.error{margin:0 16px;border-radius:16px;padding:34px 18px;text-align:center;color:var(--muted);background:rgba(11,17,29,.55);border:1px dashed var(--line)}
 .error{display:none;border-style:solid;border-color:rgba(255,110,125,.35);background:rgba(60,18,24,.46);color:#f4b5bb}
-.plot{width:100%;height:280px}
+.plot{width:100%;height:320px} /* increased height to give room for annotations */
 .plotNote{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
 .guide{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(7,13,20,.44)}
 .guide p{margin:0 0 7px 0;color:var(--muted);font-size:12px;line-height:1.5}
@@ -490,11 +490,8 @@ function analyze(d, history){
    Plot drawing (Plotly) - improved ATM placement & annotation
    ------------------------- */
 function interpolateYAtX(curveRows, x){
-  // curveRows sorted by strike ascending
   if(!curveRows || !curveRows.length) return null;
-  // exact match
   for(const r of curveRows) if(r.strike === x) return r.settle;
-  // find neighbors
   let left = null, right = null;
   for(let i=0;i<curveRows.length;i++){
     if(curveRows[i].strike < x) left = curveRows[i];
@@ -503,7 +500,6 @@ function interpolateYAtX(curveRows, x){
   if(!left && !right) return curveRows[0].settle;
   if(!left) return right.settle;
   if(!right) return left.settle;
-  // linear interpolation
   const t = (x - left.strike) / (right.strike - left.strike);
   return left.settle + t * (right.settle - left.settle);
 }
@@ -516,7 +512,7 @@ function drawPlot(curveRows, spot, skewRegime){
   // compute ATM y by interpolation so the diamond sits exactly on the curve
   const atmY = interpolateYAtX(curveRows, spot);
 
-  // smoother line + subtle markers
+  // main IV curve
   const traceLine = {
     type:"scatter", mode:"lines+markers", x, y, name:"IV proxy",
     line:{color:"#7eb8ff",width:3,shape:"spline",smoothing:1.2},
@@ -524,41 +520,41 @@ function drawPlot(curveRows, spot, skewRegime){
     hovertemplate:"Strike %{x}<br>IV proxy %{y:.4f}<extra></extra>"
   };
 
-  // ATM marker placed exactly on the curve (interpolated)
+  // ATM marker: smaller marker + separate annotation (annotation avoids overlap)
   const traceATM = {
-    type:"scatter", mode:"markers+text", x:[spot], y:[atmY],
-    marker:{size:14,color:"#e0b24f",symbol:"diamond",line:{width:2,color:"#08111b"}},
-    text:[`ATM ${spot}`],
-    textposition:"top center",
-    textfont:{color:"#eaf1fb",size:11,weight:700},
+    type:"scatter", mode:"markers", x:[spot], y:[atmY],
+    marker:{size:12,color:"#e0b24f",symbol:"diamond",line:{width:2,color:"#08111b"}},
     hovertemplate:"ATM %{x}<br>IV proxy %{y:.4f}<extra></extra>"
   };
 
-  // layout with annotation box to explain ATM marker
+  // layout: increase top margin and use annotation with standoff/yshift to avoid overlap
   const layout = {
-    margin:{l:44,r:14,t:18,b:38},
+    margin:{l:54,r:18,t:60,b:48}, // increased top margin to give room for annotation
     paper_bgcolor:"rgba(0,0,0,0)",
     plot_bgcolor:"#09111b",
     font:{color:"#eaf1fb",size:11},
-    xaxis:{title:{text:"Strike",font:{color:"#96a8c2"}},gridcolor:"rgba(255,255,255,.07)",zeroline:false},
+    xaxis:{title:{text:"Strike",font:{color:"#96a8c2"}},gridcolor:"rgba(255,255,255,.07)",zeroline:false,tickformat:','},
     yaxis:{title:{text:"IV proxy",font:{color:"#96a8c2"}},gridcolor:"rgba(255,255,255,.07)",zeroline:false},
     showlegend:false,
     annotations:[
       {
         x: spot, y: atmY,
         xref:"x", yref:"y",
-        text:`ATM ≈ ${spot}<br>IV ${atmY !== null ? atmY.toFixed(4) : '—'}`,
+        text:`ATM ${spot}<br>IV ${atmY !== null ? atmY.toFixed(4) : '—'}`,
         showarrow:true,
         arrowhead:2,
         ax:0,
-        ay:-36,
-        bgcolor:"rgba(14,20,30,0.8)",
+        ay:-48,            // push annotation above marker
+        standoff:12,       // extra space between arrow and text
+        bgcolor:"rgba(14,20,30,0.9)",
         bordercolor:"rgba(224,178,79,0.12)",
-        font:{color:"#eaf1fb",size:11}
+        borderwidth:1,
+        font:{color:"#eaf1fb",size:12},
+        align:"center"
       }
     ],
     shapes:[
-      // subtle vertical guide at ATM for clarity
+      // subtle vertical guide at ATM for clarity (low opacity)
       { type:"line", x0:spot, x1:spot, xref:"x", y0:Math.min(...y), y1:Math.max(...y), yref:"y", line:{color:"rgba(224,178,79,0.06)",width:1,dash:"dot"} }
     ]
   };
